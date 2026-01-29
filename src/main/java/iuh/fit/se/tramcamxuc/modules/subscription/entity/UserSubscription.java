@@ -1,6 +1,7 @@
 package iuh.fit.se.tramcamxuc.modules.subscription.entity;
 
 import iuh.fit.se.tramcamxuc.BaseEntity;
+import iuh.fit.se.tramcamxuc.modules.subscription.entity.enums.SubscriptionStatus;
 import iuh.fit.se.tramcamxuc.modules.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,5 +27,10 @@ public class UserSubscription extends BaseEntity {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SubscriptionStatus status;
+
+    @Column(unique = true)
+    private Long orderCode;
 }

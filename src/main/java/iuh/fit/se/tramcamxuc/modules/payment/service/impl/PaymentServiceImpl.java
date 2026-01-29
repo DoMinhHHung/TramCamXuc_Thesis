@@ -65,7 +65,7 @@ public class PaymentServiceImpl implements PaymentService {
         CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest .builder()
                 .orderCode(orderCode)
                 .amount((long) plan.getPrice())
-                .description("Mua goi " + plan.getName())
+                .description("Mua " + plan.getName())
                 .returnUrl(request.getReturnUrl() != null ? request.getReturnUrl() : defaultReturnUrl)
                 .cancelUrl(request.getCancelUrl() != null ? request.getCancelUrl() : defaultCancelUrl)
                 .item(item)
@@ -123,13 +123,13 @@ public class PaymentServiceImpl implements PaymentService {
         UserSubscription subscription = userSubscriptionRepository.findByUserIdAndStatus(user.getId(), SubscriptionStatus.ACTIVE)
                 .orElse(UserSubscription.builder()
                         .user(user)
-                        .status(String.valueOf(SubscriptionStatus.ACTIVE))
+                        .status(SubscriptionStatus.ACTIVE)
                         .build());
 
         subscription.setPlan(plan);
         subscription.setStartDate(LocalDateTime.now());
         subscription.setEndDate(LocalDateTime.now().plusDays(plan.getDurationDays()));
-        subscription.setStatus(String.valueOf(SubscriptionStatus.ACTIVE));
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
 
         userSubscriptionRepository.save(subscription);
 

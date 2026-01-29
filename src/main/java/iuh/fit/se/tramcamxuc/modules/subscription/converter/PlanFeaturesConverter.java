@@ -5,13 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import iuh.fit.se.tramcamxuc.modules.subscription.model.PlanFeatures;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Converter(autoApply = true)
 @Slf4j
+@RequiredArgsConstructor
 public class PlanFeaturesConverter implements AttributeConverter<PlanFeatures, String> {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Override
     public String convertToDatabaseColumn(PlanFeatures attribute) {

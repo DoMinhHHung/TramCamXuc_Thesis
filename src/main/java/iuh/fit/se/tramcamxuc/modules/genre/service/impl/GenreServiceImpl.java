@@ -8,9 +8,9 @@ import iuh.fit.se.tramcamxuc.modules.genre.dto.response.GenreResponse;
 import iuh.fit.se.tramcamxuc.modules.genre.entity.Genre;
 import iuh.fit.se.tramcamxuc.modules.genre.repository.GenreRepository;
 import iuh.fit.se.tramcamxuc.modules.genre.service.GenreService;
-import jakarta.persistence.Cacheable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

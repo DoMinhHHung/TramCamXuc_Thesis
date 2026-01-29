@@ -16,6 +16,4 @@ public interface SubscriptionPlanRepository extends JpaRepository<SubscriptionPl
     boolean existsByNameAndIdNot(String name, UUID id);
     List<SubscriptionPlan> findByIsActiveTrue();
 
-    Optional<UserSubscription> findByOrderCode(Long orderCode);
-    boolean existsByUserIdAndStatus(UUID userId, SubscriptionStatus status);
 }
