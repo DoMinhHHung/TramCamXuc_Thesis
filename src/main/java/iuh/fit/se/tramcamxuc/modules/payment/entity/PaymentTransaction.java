@@ -1,6 +1,7 @@
 package iuh.fit.se.tramcamxuc.modules.payment.entity;
 
 import iuh.fit.se.tramcamxuc.BaseEntity;
+import iuh.fit.se.tramcamxuc.modules.payment.entity.enums.PaymentStatus;
 import iuh.fit.se.tramcamxuc.modules.subscription.entity.SubscriptionPlan;
 import iuh.fit.se.tramcamxuc.modules.user.entity.User;
 import jakarta.persistence.*;
@@ -28,8 +29,9 @@ public class PaymentTransaction extends BaseEntity {
 
     private int amount;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private String status;
+    private PaymentStatus status;
 
     @Column(columnDefinition = "TEXT")
     private String checkoutUrl;

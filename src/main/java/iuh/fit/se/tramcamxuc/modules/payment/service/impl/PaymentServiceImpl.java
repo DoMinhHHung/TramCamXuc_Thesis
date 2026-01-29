@@ -5,6 +5,7 @@ import iuh.fit.se.tramcamxuc.common.exception.ResourceNotFoundException;
 import iuh.fit.se.tramcamxuc.modules.payment.dto.request.CreatePaymentRequest;
 import iuh.fit.se.tramcamxuc.modules.payment.dto.response.PaymentResponse;
 import iuh.fit.se.tramcamxuc.modules.payment.entity.PaymentTransaction;
+import iuh.fit.se.tramcamxuc.modules.payment.entity.enums.PaymentStatus;
 import iuh.fit.se.tramcamxuc.modules.payment.repository.PaymentTransactionRepository;
 import iuh.fit.se.tramcamxuc.modules.payment.service.PaymentService;
 import iuh.fit.se.tramcamxuc.modules.subscription.entity.SubscriptionPlan;
@@ -27,6 +28,7 @@ import vn.payos.model.v2.paymentRequests.CreatePaymentLinkResponse;
 import vn.payos.model.v2.paymentRequests.PaymentLinkItem;
 import vn.payos.model.webhooks.WebhookData;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 
 @Service
@@ -54,7 +56,7 @@ public class PaymentServiceImpl implements PaymentService {
         SubscriptionPlan plan = planRepository.findById(request.getPlanId())
                 .orElseThrow(() -> new ResourceNotFoundException("Gói cước không tồn tại"));
 
-        long orderCode = System.currentTimeMillis();
+        long orderCode = generateOrderCode();
 
         PaymentLinkItem item = PaymentLinkItem .builder()
                 .name(plan.getName())
@@ -79,7 +81,7 @@ public class PaymentServiceImpl implements PaymentService {
                     .user(user)
                     .plan(plan)
                     .amount(plan.getPrice())
-                    .status("PENDING")
+                    .status(PaymentStatus.PENDING)
                     .checkoutUrl(data.getCheckoutUrl())
                     .build();
             transactionRepository.save(transaction);
@@ -105,16 +107,16 @@ public class PaymentServiceImpl implements PaymentService {
         PaymentTransaction transaction = transactionRepository.findByOrderCode(orderCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy giao dịch " + orderCode));
 
-        if ("PAID".equals(transaction.getStatus())) return;
+        if (PaymentStatus.PAID.equals(transaction.getStatus())) return;
 
         if ("00".equals(webhookData.getCode())) {
-            transaction.setStatus("PAID");
+            transaction.setStatus(PaymentStatus.PAID);
             transactionRepository.save(transaction);
 
             activateSubscription(transaction.getUser(), transaction.getPlan());
 
         } else {
-            transaction.setStatus("CANCELLED");
+            transaction.setStatus(PaymentStatus.CANCELLED);
             transactionRepository.save(transaction);
         }
     }
@@ -132,13 +134,11 @@ public class PaymentServiceImpl implements PaymentService {
         subscription.setStatus(SubscriptionStatus.ACTIVE);
 
         userSubscriptionRepository.save(subscription);
+    }
 
-        if (plan.getFeatures() != null && plan.getFeatures().isCanBecomeArtist()) {
-            if (user.getRole() == Role.USER) {
-                user.setRole(Role.ARTIST);
-                userRepository.save(user);
-                log.info("User {} upgraded to ARTIST", user.getEmail());
-            }
-        }
+    private long generateOrderCode() {
+        long timestamp = System.currentTimeMillis();
+        int randomThreeDigits = new SecureRandom().nextInt(900) + 100;
+        return Long.parseLong(String.valueOf(timestamp) + randomThreeDigits);
     }
 }
