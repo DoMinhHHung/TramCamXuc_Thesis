@@ -9,8 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
@@ -25,19 +23,19 @@ public class GenreController {
         return ResponseEntity.ok(ApiResponse.success(genreService.getAllGenres()));
     }
 
-    @PostMapping(consumes = "multipart/form-data")
+    @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<GenreResponse>> createGenre(
-            @Valid @ModelAttribute GenreRequest request
+            @Valid @RequestBody GenreRequest request
     ) {
         return ResponseEntity.ok(ApiResponse.success(genreService.createGenre(request)));
     }
 
-    @PutMapping(value = "/{id}", consumes = "multipart/form-data")
+    @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<GenreResponse>> updateGenre(
             @PathVariable UUID id,
-            @Valid @ModelAttribute GenreRequest request) {
+            @Valid @RequestBody GenreRequest request) {
         return ResponseEntity.ok(ApiResponse.success(genreService.updateGenre(id, request)));
     }
 
