@@ -1,7 +1,7 @@
-package iuh.fit.se.tramcamxuc.modules.plan.service;
+package iuh.fit.se.tramcamxuc.modules.subscription.service;
 
-import iuh.fit.se.tramcamxuc.modules.plan.dto.request.CreatePlanRequest;
-import iuh.fit.se.tramcamxuc.modules.plan.dto.response.PlanResponse;
+import iuh.fit.se.tramcamxuc.modules.subscription.dto.request.CreatePlanRequest;
+import iuh.fit.se.tramcamxuc.modules.subscription.dto.response.PlanResponse;
 import java.util.List;
 import java.util.UUID;
 

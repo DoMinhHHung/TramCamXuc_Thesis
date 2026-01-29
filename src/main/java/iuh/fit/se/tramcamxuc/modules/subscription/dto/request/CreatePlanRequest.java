@@ -1,6 +1,6 @@
-package iuh.fit.se.tramcamxuc.modules.plan.dto.request;
+package iuh.fit.se.tramcamxuc.modules.subscription.dto.request;
 
-import iuh.fit.se.tramcamxuc.modules.plan.model.PlanFeatures;
+import iuh.fit.se.tramcamxuc.modules.subscription.model.PlanFeatures;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

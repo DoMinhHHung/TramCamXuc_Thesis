@@ -1,7 +1,7 @@
-package iuh.fit.se.tramcamxuc.modules.plan.dto.response;
+package iuh.fit.se.tramcamxuc.modules.subscription.dto.response;
 
-import iuh.fit.se.tramcamxuc.modules.plan.entity.SubscriptionPlan;
-import iuh.fit.se.tramcamxuc.modules.plan.model.PlanFeatures;
+import iuh.fit.se.tramcamxuc.modules.subscription.entity.SubscriptionPlan;
+import iuh.fit.se.tramcamxuc.modules.subscription.model.PlanFeatures;
 import lombok.Builder;
 import lombok.Data;
 

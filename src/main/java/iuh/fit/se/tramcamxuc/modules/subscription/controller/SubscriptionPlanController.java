@@ -1,9 +1,9 @@
-package iuh.fit.se.tramcamxuc.modules.plan.controller;
+package iuh.fit.se.tramcamxuc.modules.subscription.controller;
 
 import iuh.fit.se.tramcamxuc.common.exception.dto.ApiResponse;
-import iuh.fit.se.tramcamxuc.modules.plan.dto.request.CreatePlanRequest;
-import iuh.fit.se.tramcamxuc.modules.plan.dto.response.PlanResponse;
-import iuh.fit.se.tramcamxuc.modules.plan.service.SubscriptionPlanService;
+import iuh.fit.se.tramcamxuc.modules.subscription.dto.request.CreatePlanRequest;
+import iuh.fit.se.tramcamxuc.modules.subscription.dto.response.PlanResponse;
+import iuh.fit.se.tramcamxuc.modules.subscription.service.SubscriptionPlanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

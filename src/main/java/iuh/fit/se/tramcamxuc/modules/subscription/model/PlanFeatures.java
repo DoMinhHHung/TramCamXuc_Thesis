@@ -1,4 +1,4 @@
-package iuh.fit.se.tramcamxuc.modules.plan.model;
+package iuh.fit.se.tramcamxuc.modules.subscription.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

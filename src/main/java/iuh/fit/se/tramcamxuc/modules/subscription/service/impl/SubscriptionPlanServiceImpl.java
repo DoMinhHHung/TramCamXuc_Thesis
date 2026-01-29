@@ -1,12 +1,12 @@
-package iuh.fit.se.tramcamxuc.modules.plan.service.impl;
+package iuh.fit.se.tramcamxuc.modules.subscription.service.impl;
 
 import iuh.fit.se.tramcamxuc.common.exception.AppException;
 import iuh.fit.se.tramcamxuc.common.exception.ResourceNotFoundException;
-import iuh.fit.se.tramcamxuc.modules.plan.dto.request.CreatePlanRequest;
-import iuh.fit.se.tramcamxuc.modules.plan.dto.response.PlanResponse;
-import iuh.fit.se.tramcamxuc.modules.plan.entity.SubscriptionPlan;
-import iuh.fit.se.tramcamxuc.modules.plan.repository.SubscriptionPlanRepository;
-import iuh.fit.se.tramcamxuc.modules.plan.service.SubscriptionPlanService;
+import iuh.fit.se.tramcamxuc.modules.subscription.dto.request.CreatePlanRequest;
+import iuh.fit.se.tramcamxuc.modules.subscription.dto.response.PlanResponse;
+import iuh.fit.se.tramcamxuc.modules.subscription.entity.SubscriptionPlan;
+import iuh.fit.se.tramcamxuc.modules.subscription.repository.SubscriptionPlanRepository;
+import iuh.fit.se.tramcamxuc.modules.subscription.service.SubscriptionPlanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

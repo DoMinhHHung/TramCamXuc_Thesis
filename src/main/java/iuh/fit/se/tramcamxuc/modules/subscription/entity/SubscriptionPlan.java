@@ -1,12 +1,10 @@
-package iuh.fit.se.tramcamxuc.modules.plan.entity;
+package iuh.fit.se.tramcamxuc.modules.subscription.entity;
 
 import iuh.fit.se.tramcamxuc.BaseEntity;
-import iuh.fit.se.tramcamxuc.modules.plan.converter.PlanFeaturesConverter;
-import iuh.fit.se.tramcamxuc.modules.plan.model.PlanFeatures;
+import iuh.fit.se.tramcamxuc.modules.subscription.converter.PlanFeaturesConverter;
+import iuh.fit.se.tramcamxuc.modules.subscription.model.PlanFeatures;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.math.BigDecimal;
 
 @Entity
 @Table(name = "subscription_plans")
@@ -28,7 +26,6 @@ public class SubscriptionPlan extends BaseEntity {
     @Column(nullable = false)
     private int durationDays;
 
-    @Column(name = "is_active")
     private boolean isActive = true;
 
     @Column(columnDefinition = "TEXT")
