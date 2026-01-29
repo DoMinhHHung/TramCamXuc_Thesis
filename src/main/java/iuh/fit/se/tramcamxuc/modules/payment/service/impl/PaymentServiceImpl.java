@@ -14,8 +14,6 @@ import iuh.fit.se.tramcamxuc.modules.subscription.entity.enums.SubscriptionStatu
 import iuh.fit.se.tramcamxuc.modules.subscription.repository.SubscriptionPlanRepository;
 import iuh.fit.se.tramcamxuc.modules.subscription.repository.UserSubscriptionRepository;
 import iuh.fit.se.tramcamxuc.modules.user.entity.User;
-import iuh.fit.se.tramcamxuc.modules.user.entity.enums.Role;
-import iuh.fit.se.tramcamxuc.modules.user.repository.UserRepository;
 import iuh.fit.se.tramcamxuc.modules.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +39,6 @@ public class PaymentServiceImpl implements PaymentService {
     private final SubscriptionPlanRepository planRepository;
     private final UserSubscriptionRepository userSubscriptionRepository;
     private final UserService userService;
-    private final UserRepository userRepository;
 
     @Value("${payos.return-url}")
     private String defaultReturnUrl;

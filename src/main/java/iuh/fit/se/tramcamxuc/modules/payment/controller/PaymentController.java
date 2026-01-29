@@ -1,5 +1,6 @@
 package iuh.fit.se.tramcamxuc.modules.payment.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import iuh.fit.se.tramcamxuc.common.exception.dto.ApiResponse;
 import iuh.fit.se.tramcamxuc.modules.payment.dto.request.CreatePaymentRequest;
@@ -21,6 +22,7 @@ public class PaymentController {
 
     private final PaymentService paymentService;
     private final PayOS payOS;
+    private final ObjectMapper objectMapper;
 
     @PostMapping("/checkout")
     public ResponseEntity<ApiResponse<PaymentResponse>> createPaymentLink(
@@ -30,9 +32,10 @@ public class PaymentController {
     }
 
     @PostMapping("/webhook")
-    public ResponseEntity<ApiResponse<String>> handleWebhook(@RequestBody ObjectNode body) {
+    public ResponseEntity<ApiResponse<String>> handleWebhook(@RequestBody String body) {
         try {
-            WebhookData webhookData = payOS.webhooks().verify(body);
+            ObjectNode node = (ObjectNode) objectMapper.readTree(body);
+            WebhookData webhookData = payOS.webhooks().verify(node);
             paymentService.processWebhook(webhookData);
             return ResponseEntity.ok(ApiResponse.success("Webhook processed"));
         } catch (Exception e) {
