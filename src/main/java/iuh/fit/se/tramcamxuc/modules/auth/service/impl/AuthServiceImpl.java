@@ -353,7 +353,6 @@ public class AuthServiceImpl implements AuthService {
                         ". Please enter old password to link account.");
             }
             existingUser.setAvatarUrl(avatarUrl);
-//            existingUser.setProvider(provider);
             existingUser.setProviderId(providerId);
             return userRepository.save(existingUser);
         } else {
@@ -380,19 +379,6 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-//    private Map<String, Object> verifyGoogleToken(String idToken) {
-//        try {
-//            String url = googleLoginUrl + idToken;
-//            return restTemplate.exchange(
-//                    url,
-//                    HttpMethod.GET,
-//                    null,
-//                    new ParameterizedTypeReference<Map<String, Object>>() {}
-//            ).getBody();
-//        } catch (Exception e) {
-//            throw new AppException("Google Token is invalid: " + e.getMessage());
-//        }
-//    }
 
     private Map<String, Object> verifyGoogleToken(String idToken) {
         try {
