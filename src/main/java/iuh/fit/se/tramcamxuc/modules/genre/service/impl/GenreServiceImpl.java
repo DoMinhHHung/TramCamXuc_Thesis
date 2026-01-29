@@ -33,7 +33,7 @@ public class GenreServiceImpl implements GenreService {
 
     @Override
     @Transactional
-    @CacheEvict(value = "all_genres", allEntries = true) // Xóa cache cũ khi có dữ liệu mới
+    @CacheEvict(value = "all_genres", allEntries = true)
     public GenreResponse createGenre(GenreRequest request) {
         if (genreRepository.existsByName(request.getName())) {
             throw new AppException("Genre name '" + request.getName() + "' is already!");
