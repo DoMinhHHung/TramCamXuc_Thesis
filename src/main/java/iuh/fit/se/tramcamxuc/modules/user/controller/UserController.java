@@ -56,4 +56,10 @@ public class UserController {
                     return ResponseEntity.ok(ApiResponse.success(url));
                 });
     }
+
+    @PostMapping("/onboarding")
+    public ResponseEntity<ApiResponse<String>> onboardUser(@Valid @RequestBody OnboardingRequest request) {
+        userService.onboardUser(request);
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật sở thích thành công!"));
+    }
 }

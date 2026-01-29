@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 public class CloudinaryService {
     private final Cloudinary cloudinary;
 
-    @Async
+    @Async("taskExecutor")
     public CompletableFuture<String> uploadAvatarAsync(MultipartFile file, String userId) {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -47,7 +47,7 @@ public class CloudinaryService {
         });
     }
 
-    @Async
+    @Async("taskExecutor")
     public CompletableFuture<String> uploadImageAsync(MultipartFile file, String folderName) {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -63,7 +63,7 @@ public class CloudinaryService {
         });
     }
 
-    @Async
+    @Async("taskExecutor")
     public void deleteImage(String imageUrl) {
         if (imageUrl == null) return;
         try {

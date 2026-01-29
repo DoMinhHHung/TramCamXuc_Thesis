@@ -32,7 +32,7 @@ public class MinioService {
     @Value("${minio.endpoint}")
     private String internalEndpoint;
 
-    @Async
+    @Async("taskExecutor")
     public CompletableFuture<String> uploadMusicFileAsync(File file, String contentType, String originalFilename) {
         return CompletableFuture.supplyAsync(() -> {
             try (FileInputStream inputStream = new FileInputStream(file)) {
@@ -62,7 +62,7 @@ public class MinioService {
         });
     }
 
-    @Async
+    @Async("taskExecutor")
     public void deleteFileAsync(String fileUrl) {
         if (fileUrl == null || fileUrl.isEmpty()) return;
         try {

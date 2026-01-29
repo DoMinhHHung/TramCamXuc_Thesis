@@ -4,7 +4,10 @@ import iuh.fit.se.tramcamxuc.common.exception.AppException;
 import iuh.fit.se.tramcamxuc.common.exception.ResourceNotFoundException;
 import iuh.fit.se.tramcamxuc.common.service.CloudinaryService;
 import iuh.fit.se.tramcamxuc.common.service.EmailService;
+import iuh.fit.se.tramcamxuc.modules.genre.entity.Genre;
+import iuh.fit.se.tramcamxuc.modules.genre.repository.GenreRepository;
 import iuh.fit.se.tramcamxuc.modules.user.dto.request.ChangePasswordRequest;
+import iuh.fit.se.tramcamxuc.modules.user.dto.request.OnboardingRequest;
 import iuh.fit.se.tramcamxuc.modules.user.dto.request.UpdateProfileRequest;
 import iuh.fit.se.tramcamxuc.modules.user.dto.response.UserProfileResponse;
 import iuh.fit.se.tramcamxuc.modules.user.entity.User;
@@ -26,6 +29,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.security.SecureRandom;
 import java.time.Duration;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -39,6 +44,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final StringRedisTemplate redisTemplate;
     private final EmailService emailService;
+    private final GenreRepository genreRepository;
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
@@ -123,6 +129,22 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         redisTemplate.delete(key);
+    }
+
+    @Override
+    @Transactional
+    public void onboardUser(OnboardingRequest request) {
+        User user = getCurrentUser(); // Lấy user đang login từ SecurityContext
+
+        List<Genre> selectedGenres = genreRepository.findAllById(request.getGenreIds());
+        if (selectedGenres.size() != request.getGenreIds().size()) {
+            throw new AppException("Một số thể loại không tồn tại");
+        }
+
+        user.setFavoriteGenres(new HashSet<>(selectedGenres));
+        user.setOnboardingCompleted(true);
+
+        userRepository.save(user);
     }
 
     @Override

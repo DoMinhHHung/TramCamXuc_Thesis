@@ -1,6 +1,7 @@
 package iuh.fit.se.tramcamxuc.modules.user.entity;
 
 import iuh.fit.se.tramcamxuc.BaseEntity;
+import iuh.fit.se.tramcamxuc.modules.genre.entity.Genre;
 import iuh.fit.se.tramcamxuc.modules.user.entity.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
@@ -51,4 +52,14 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private UserStatus isActive;
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_favorite_genres",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
+    private Set<Genre> favoriteGenres = new HashSet<>();
+
+    @Column(name = "is_onboarding_completed", columnDefinition = "boolean default false")
+    private boolean isOnboardingCompleted = false;
 }

@@ -18,7 +18,7 @@ public interface UserService {
     CompletableFuture<String> uploadAvatar(MultipartFile file);
     void requestChangePasswordOtp();
     void changePasswordWithOtp(ChangePasswordRequest request);
-
+    void onboardUser(OnboardingRequest request);
 //    TODO: Admin
     Page<UserProfileResponse> getAllUsers(String keyword, Role role, Pageable pageable);
     void toggleUserStatus(UUID userId);

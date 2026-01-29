@@ -29,7 +29,7 @@ public class EmailService {
     @Value("${app.base-url}")
     private String baseUrl;
 
-    @Async
+    @Async("taskExecutor")
     public void sendHtmlEmail(String to, String subject, String templateName, Map<String, Object> variables) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -51,7 +51,7 @@ public class EmailService {
         }
     }
 
-    @Async
+    @Async("taskExecutor")
     public void sendSongStatusEmail(String to, String userName, String songTitle, String status, String reasonOrSlug) {
         try {
             String subject = status.equals("APPROVED") ? "🎉 Bài hát của bạn đã được duyệt!" : "⚠️ Thông báo về bài hát của bạn";
