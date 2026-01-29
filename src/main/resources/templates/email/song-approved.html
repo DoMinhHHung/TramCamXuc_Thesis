@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bài hát đã được duyệt</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1DB954 0%, #191414 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 30px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .song-card {
+            background: #f9f9f9;
+            border-left: 5px solid #1DB954;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: #1DB954;
+            color: white;
+            padding: 14px 30px;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 6px rgba(29, 185, 84, 0.3);
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #1ed760;
+        }
+
+        .link-secondary {
+            color: #555;
+            text-decoration: underline;
+            font-size: 14px;
+        }
+
+        .footer {
+            background-color: #333;
+            color: #888;
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Bài hát đã lên sóng! 🚀</h1>
+    </div>
+    <div class="content">
+        <p>Chào <b th:text="${name}">User</b>,</p>
+        <p>Tin cực vui! Bài hát của bạn đã vượt qua vòng kiểm duyệt và sẵn sàng để thế giới thưởng thức.</p>
+
+        <div class="song-card">
+            <h3 style="margin: 0; color: #191414;" th:text="${songTitle}">Tên Bài Hát</h3>
+            <p style="margin: 5px 0 0; font-size: 0.9em;">Trạng thái: <span style="color: #1DB954; font-weight: bold;">● Public</span>
+            </p>
+        </div>
+
+        <p>Bấm nút bên dưới để mở ngay trong ứng dụng Phazel Sound:</p>
+
+        <div style="text-align: center; margin-top: 30px; margin-bottom: 20px;">
+            <a th:href="${deepLink}" class="btn">Mở trong App</a>
+        </div>
+
+        <div style="text-align: center;">
+            <p>Hoặc nghe trên trình duyệt:</p>
+            <a th:href="${webLink}" class="link-secondary" target="_blank">Link Web Streaming</a>
+        </div>
+    </div>
+    <div class="footer">
+        &copy; 2026 TramCamXuc Music. <br>
+        Deep Listening, Deep Connection.
+    </div>
+</div>
+</body>
+</html>

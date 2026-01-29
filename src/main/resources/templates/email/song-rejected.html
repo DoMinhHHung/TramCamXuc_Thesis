@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bài hát bị từ chối</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background-color: #e74c3c;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 30px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .reason-box {
+            background: #fff5f5;
+            border: 1px solid #e74c3c;
+            padding: 15px;
+            border-radius: 5px;
+            color: #c0392b;
+            margin: 20px 0;
+        }
+
+        .footer {
+            background-color: #333;
+            color: #aaa;
+            text-align: center;
+            padding: 15px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Thông báo từ chối</h1>
+    </div>
+    <div class="content">
+        <p>Xin chào <b th:text="${name}">User</b>,</p>
+        <p>Rất tiếc, bài hát <strong><span th:text="${songTitle}">Tên Bài Hát</span></strong> của bạn không đạt tiêu
+            chuẩn cộng đồng của chúng tôi.</p>
+
+        <p>Lý do từ chối:</p>
+        <div class="reason-box">
+            <b th:text="${reason}">Bản quyền âm thanh</b>
+        </div>
+
+        <p>Vui lòng chỉnh sửa và upload lại, hoặc liên hệ support nếu bạn cho rằng đây là nhầm lẫn.</p>
+    </div>
+    <div class="footer">
+        &copy; 2026 TramCamXuc Music. All rights reserved.
+    </div>
+</div>
+</body>
+</html>
