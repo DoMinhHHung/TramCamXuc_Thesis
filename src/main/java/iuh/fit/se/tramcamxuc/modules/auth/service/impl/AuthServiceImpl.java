@@ -31,6 +31,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
@@ -69,8 +70,7 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException("Username already in use");
         }
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        LocalDate dateOfBirth = LocalDate.parse(request.getDob(), formatter);
+        LocalDate dateOfBirth = parseDob(request.getDob());
 
         User user = User.builder()
                 .username(request.getUsername())
@@ -87,6 +87,30 @@ public class AuthServiceImpl implements AuthService {
         sendVerificationOtp(user);
 
         return "Registration successful. Please check your email for OTP.";
+    }
+
+    private LocalDate parseDob(String dob) {
+        if (dob == null || dob.trim().isEmpty()) {
+            throw new AppException("Date of birth cannot be blank");
+        }
+
+        String value = dob.trim();
+        DateTimeFormatter[] formatters = new DateTimeFormatter[] {
+                DateTimeFormatter.ofPattern("dd/MM/yyyy"),
+                DateTimeFormatter.ofPattern("d/M/yyyy"),
+                DateTimeFormatter.ofPattern("dd-MM-yyyy"),
+                DateTimeFormatter.ofPattern("d-M-yyyy"),
+                DateTimeFormatter.ISO_LOCAL_DATE
+        };
+
+        for (DateTimeFormatter fmt : formatters) {
+            try {
+                return LocalDate.parse(value, fmt);
+            } catch (DateTimeParseException ignored) {
+            }
+        }
+
+        throw new AppException("Invalid date of birth format. Expected formats: dd/MM/yyyy, dd-MM-yyyy or yyyy-MM-dd");
     }
 
     public void verifyAccount(String email, String otp) {
