@@ -1,5 +1,6 @@
 package iuh.fit.se.tramcamxuc.modules.song.controller;
 
+import iuh.fit.se.tramcamxuc.common.exception.AppException;
 import iuh.fit.se.tramcamxuc.common.exception.dto.ApiResponse;
 import iuh.fit.se.tramcamxuc.modules.song.dto.request.UploadSongRequest;
 import iuh.fit.se.tramcamxuc.modules.song.dto.response.SongResponse;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -62,7 +64,13 @@ public class SongController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> rejectSong(
             @PathVariable UUID id,
-            @RequestParam String reason) {
+            @RequestBody Map<String, String> body) {
+
+        String reason = body.get("reason");
+        if (reason == null || reason.trim().isEmpty()) {
+            throw new AppException("Lý do từ chối không được để trống");
+        }
+
         songService.rejectSong(id, reason);
         return ResponseEntity.ok(ApiResponse.success("Đã từ chối bài hát!"));
     }

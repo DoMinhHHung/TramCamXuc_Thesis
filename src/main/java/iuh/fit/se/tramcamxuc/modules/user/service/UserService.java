@@ -21,6 +21,7 @@ public interface UserService {
     void onboardUser(OnboardingRequest request);
 //    TODO: Admin
     Page<UserProfileResponse> getAllUsers(String keyword, Role role, Pageable pageable);
-    void toggleUserStatus(UUID userId);
+    String toggleUserStatus(UUID userId);
+    Page<UserAdminResponse> getUsersForAdmin(String keyword, int page, int size);
 
 }

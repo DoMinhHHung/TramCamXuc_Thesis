@@ -9,6 +9,7 @@ import iuh.fit.se.tramcamxuc.modules.genre.repository.GenreRepository;
 import iuh.fit.se.tramcamxuc.modules.user.dto.request.ChangePasswordRequest;
 import iuh.fit.se.tramcamxuc.modules.user.dto.request.OnboardingRequest;
 import iuh.fit.se.tramcamxuc.modules.user.dto.request.UpdateProfileRequest;
+import iuh.fit.se.tramcamxuc.modules.user.dto.response.UserAdminResponse;
 import iuh.fit.se.tramcamxuc.modules.user.dto.response.UserProfileResponse;
 import iuh.fit.se.tramcamxuc.modules.user.entity.User;
 import iuh.fit.se.tramcamxuc.modules.user.entity.enums.Role;
@@ -18,7 +19,9 @@ import iuh.fit.se.tramcamxuc.modules.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -155,15 +158,24 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void toggleUserStatus(UUID userId) {
+    public String toggleUserStatus(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if (user.getIsActive() == UserStatus.BANNED) {
-            user.setIsActive(UserStatus.ACTIVE);
-        } else {
+        if (user.getIsActive() == UserStatus.ACTIVE) {
             user.setIsActive(UserStatus.BANNED);
+        } else {
+            user.setIsActive(UserStatus.ACTIVE);
         }
 
         userRepository.save(user);
+        return (user.getIsActive() == UserStatus.ACTIVE) ? "Activated" : "Banned";
+    }
+
+    @Override
+    public Page<UserAdminResponse> getUsersForAdmin(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+
+        return userRepository.searchUsersForAdmin(keyword, pageable)
+                .map(UserAdminResponse::fromEntity);
     }
 }

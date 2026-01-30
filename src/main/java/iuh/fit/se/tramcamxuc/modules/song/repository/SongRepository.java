@@ -32,4 +32,6 @@ public interface SongRepository extends JpaRepository<Song, UUID> {
     Long getTotalPlays();
 
     List<Song> findTop5ByOrderByPlayCountDesc();
+
+
 }
