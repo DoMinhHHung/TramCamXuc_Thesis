@@ -38,16 +38,14 @@ public class ArtistServiceImpl implements ArtistService {
         User user = userService.getCurrentUser();
 
         if (artistRepository.findByUserId(user.getId()).isPresent()) {
-            throw new AppException("You are already registered as an artist. Cannot register again.");
+            throw new AppException("Your account already registered as an artist. Cannot register again. || Tài khoản của bạn đã được đăng ký vai trò nghệ sĩ. Không thể đăng ký lại. ");
         }
 
         validateArtistEligibility(user);
 
         if (artistRepository.existsByArtistName(request.getArtistName())) {
-            throw new AppException("Stage name '" + request.getArtistName() + "' already. Please choose another one.");
+            throw new AppException("Stage name '" + request.getArtistName() + "' already. Please choose another one. || Tên nghệ sĩ " + request.getArtistName() + "đã tồn tại. Vui lòng chọn tên khác");
         }
-
-        // 4. Tạo Profile
         Artist artist = Artist.builder()
                 .user(user)
                 .artistName(request.getArtistName())
@@ -71,7 +69,7 @@ public class ArtistServiceImpl implements ArtistService {
     public ArtistResponse getMyProfile() {
         User user = userService.getCurrentUser();
         Artist artist = artistRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("You are not registered as an artist."));
+                .orElseThrow(() -> new ResourceNotFoundException("You are not registered as an artist. || Bạn chưa đăng ký nghệ sĩ."));
         return ArtistResponse.fromEntity(artist);
     }
 
@@ -109,7 +107,7 @@ public class ArtistServiceImpl implements ArtistService {
     public CompletableFuture<ArtistResponse> updateAvatar(MultipartFile file) {
         User user = userService.getCurrentUser();
         Artist artist = artistRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Artist profile not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Artist profile not found || Không tìm thấy hồ sơ nghệ sĩ"));
 
         return cloudinaryService.uploadImageAsync(file, "tramcamxuc/artists/avatars")
                 .thenApply(newAvatarUrl -> {
@@ -128,7 +126,7 @@ public class ArtistServiceImpl implements ArtistService {
     public CompletableFuture<ArtistResponse> updateCover(MultipartFile file) {
         User user = userService.getCurrentUser();
         Artist artist = artistRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Artist profile not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Artist profile not found || Không tìm thấy hồ sơ nghệ sĩ"));
 
         return cloudinaryService.uploadImageAsync(file, "tramcamxuc/artists/covers")
                 .thenApply(newCoverUrl -> {
@@ -145,11 +143,11 @@ public class ArtistServiceImpl implements ArtistService {
     private void validateArtistEligibility(User user) {
         UserSubscription subscription = userSubscriptionRepository
                 .findByUserIdAndStatus(user.getId(), SubscriptionStatus.ACTIVE)
-                .orElseThrow(() -> new AppException("Bạn chưa đăng ký gói cước nào. Vui lòng mua gói Artist."));
+                .orElseThrow(() -> new AppException(" You don't registration subsciption plans. || Bạn chưa đăng ký gói cước nào. Vui lòng tham khảo gói cước."));
 
         if (subscription.getPlan().getFeatures() == null ||
                 !subscription.getPlan().getFeatures().isCanBecomeArtist()) {
-            throw new AppException("Subscription plan does not allow artist registration. Please upgrade your plan.");
+            throw new AppException("Subscription plan does not allow artist registration. Please upgrade your plan. || Gói cước hiện tại không hỗ trợ tính năng nghệ sĩ. Vui lòng nâng cấp gói cước.");
         }
     }
 }

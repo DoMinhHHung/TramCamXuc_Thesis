@@ -51,7 +51,7 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentResponse createPaymentLink(CreatePaymentRequest request) {
         User user = userService.getCurrentUser();
         SubscriptionPlan plan = planRepository.findById(request.getPlanId())
-                .orElseThrow(() -> new ResourceNotFoundException("Gói cước không tồn tại"));
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription plans not exists"));
 
         long orderCode = generateOrderCode();
 
@@ -64,7 +64,7 @@ public class PaymentServiceImpl implements PaymentService {
         CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest .builder()
                 .orderCode(orderCode)
                 .amount((long) plan.getPrice())
-                .description("Mua " + plan.getName())
+                .description("Buy " + plan.getName())
                 .returnUrl(request.getReturnUrl() != null ? request.getReturnUrl() : defaultReturnUrl)
                 .cancelUrl(request.getCancelUrl() != null ? request.getCancelUrl() : defaultCancelUrl)
                 .item(item)
@@ -91,7 +91,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         } catch (Exception e) {
             log.error("PayOS Error: ", e);
-            throw new AppException("Lỗi tạo link thanh toán: " + e.getMessage());
+            throw new AppException("Cannot create payment link: " + e.getMessage());
         }
     }
 
@@ -102,7 +102,7 @@ public class PaymentServiceImpl implements PaymentService {
         log.info("Webhook received orderCode: {}", orderCode);
 
         PaymentTransaction transaction = transactionRepository.findByOrderCode(orderCode)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy giao dịch " + orderCode));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found " + orderCode));
 
         if (PaymentStatus.PAID.equals(transaction.getStatus())) return;
 

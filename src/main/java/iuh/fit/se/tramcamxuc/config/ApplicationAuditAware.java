@@ -1,6 +1,6 @@
 package iuh.fit.se.tramcamxuc.config;
 
-import iuh.fit.se.tramcamxuc.modules.auth.service.CustomUserDetails;
+import iuh.fit.se.tramcamxuc.modules.auth.service.impl.CustomUserDetails;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;

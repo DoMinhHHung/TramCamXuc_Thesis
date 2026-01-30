@@ -134,7 +134,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void onboardUser(OnboardingRequest request) {
-        User user = getCurrentUser(); // Lấy user đang login từ SecurityContext
+        User user = getCurrentUser();
 
         List<Genre> selectedGenres = genreRepository.findAllById(request.getGenreIds());
         if (selectedGenres.size() != request.getGenreIds().size()) {

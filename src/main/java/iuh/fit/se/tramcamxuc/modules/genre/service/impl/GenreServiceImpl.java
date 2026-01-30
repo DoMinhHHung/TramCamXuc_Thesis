@@ -70,7 +70,7 @@ public class GenreServiceImpl implements GenreService {
     @CacheEvict(value = "all_genres", allEntries = true)
     public void deleteGenre(UUID id) {
         if (!genreRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Không tìm thấy thể loại để xóa");
+            throw new ResourceNotFoundException("Genre not found to delete");
         }
         genreRepository.deleteById(id);
     }

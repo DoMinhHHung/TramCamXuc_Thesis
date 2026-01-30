@@ -1,6 +1,5 @@
 package iuh.fit.se.tramcamxuc.modules.auth.service.impl;
 
-import iuh.fit.se.tramcamxuc.modules.auth.service.CustomUserDetails;
 import iuh.fit.se.tramcamxuc.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;

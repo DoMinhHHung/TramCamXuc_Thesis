@@ -403,7 +403,6 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-
     private Map<String, Object> verifyGoogleToken(String idToken) {
         try {
             String url = googleLoginUrl + idToken;

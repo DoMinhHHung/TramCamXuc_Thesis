@@ -1,4 +1,4 @@
-package iuh.fit.se.tramcamxuc.modules.auth.service;
+package iuh.fit.se.tramcamxuc.modules.auth.service.impl;
 
 import iuh.fit.se.tramcamxuc.modules.user.entity.User;
 import iuh.fit.se.tramcamxuc.modules.user.entity.enums.UserStatus;

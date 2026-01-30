@@ -55,8 +55,8 @@ public class SongServiceImpl implements SongService {
     private final UserService userService;
     private final MinioService minioService;
     private final CloudinaryService cloudinaryService;
-    private final StringRedisTemplate redisTemplate;
     private final EmailService emailService;
+    private final StringRedisTemplate redisTemplate;
     private final ListenHistoryRepository listenHistoryRepository;
 
     private static final String TRANSCODE_QUEUE_KEY = "music:transcode:queue";

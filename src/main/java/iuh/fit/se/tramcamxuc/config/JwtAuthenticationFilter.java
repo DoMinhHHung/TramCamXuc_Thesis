@@ -62,11 +62,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (ExpiredJwtException e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            response.getWriter().write("{\"error\": \"Token expired\", \"message\": \"Vui lòng đăng nhập lại hoặc refresh token\"}");
+            response.getWriter().write("{\"error\": \"Token expired\", \"message\": \"Authorization failed: Please login again || Xác thực thất bại: vui lòng đăng nhập lại\"}");
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            response.getWriter().write("{\"error\": \"Invalid Token\", \"message\": \"Token không hợp lệ\"}");
+            response.getWriter().write("{\"error\": \"Invalid Token\", \"message\": \"Authorization failed: Token invalid: || Xác thực thất bại: Token không hợp lệ\"}");
         }
     }
 }
