@@ -74,7 +74,8 @@ public class TranscodeWorker {
                     outputFile.getAbsolutePath()
             );
 
-            pb.redirectErrorStream(true);
+            pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
             Process process = pb.start();
             boolean finished = process.waitFor(5, TimeUnit.MINUTES);
 
