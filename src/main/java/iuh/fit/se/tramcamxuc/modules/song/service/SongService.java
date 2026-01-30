@@ -6,6 +6,8 @@ import iuh.fit.se.tramcamxuc.modules.song.entity.enums.SongStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 import java.util.UUID;
 
 public interface SongService {
@@ -15,4 +17,5 @@ public interface SongService {
     void rejectSong(UUID songId, String reason);
     Page<SongResponse> getSongsByStatusForAdmin(SongStatus status, int page, int size);
     void recordListen(UUID songId);
+    List<SongResponse> getTop5Trending();
 }

@@ -3,6 +3,7 @@ package iuh.fit.se.tramcamxuc.modules.statistic.controller;
 import iuh.fit.se.tramcamxuc.common.exception.dto.ApiResponse;
 import iuh.fit.se.tramcamxuc.modules.statistic.dto.response.ChartResponse;
 import iuh.fit.se.tramcamxuc.modules.statistic.dto.response.DashboardStatsResponse;
+import iuh.fit.se.tramcamxuc.modules.statistic.dto.response.RevenueStatsResponse;
 import iuh.fit.se.tramcamxuc.modules.statistic.service.StatisticService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,5 +29,11 @@ public class StatisticController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ChartResponse>> getListeningTrend() {
         return ResponseEntity.ok(ApiResponse.success(statisticService.getListeningTrend()));
+    }
+
+    @GetMapping("/revenue")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<RevenueStatsResponse>> getRevenueStats() {
+        return ResponseEntity.ok(ApiResponse.success(statisticService.getRevenueStats()));
     }
 }

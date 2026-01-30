@@ -188,6 +188,15 @@ public class SongServiceImpl implements SongService {
         listenHistoryRepository.save(history);
     }
 
+    @Override
+    public List<SongResponse> getTop5Trending() {
+        List<Song> topSongs = songRepository.findTop5ByOrderByPlayCountDesc();
+
+        return topSongs.stream()
+                .map(SongResponse::fromEntity)
+                .toList();
+    }
+
     // --- METHODs HELPER ---
     private int getDurationFromMultipartFile(MultipartFile file) {
         File tempFile = null;

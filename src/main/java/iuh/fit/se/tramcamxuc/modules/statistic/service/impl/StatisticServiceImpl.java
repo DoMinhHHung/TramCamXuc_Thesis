@@ -1,11 +1,15 @@
 package iuh.fit.se.tramcamxuc.modules.statistic.service.impl;
 
 import iuh.fit.se.tramcamxuc.modules.artist.repository.ArtistRepository;
+import iuh.fit.se.tramcamxuc.modules.payment.repository.PaymentTransactionRepository;
 import iuh.fit.se.tramcamxuc.modules.song.repository.SongRepository;
 import iuh.fit.se.tramcamxuc.modules.statistic.dto.response.ChartResponse;
 import iuh.fit.se.tramcamxuc.modules.statistic.dto.response.DashboardStatsResponse;
+import iuh.fit.se.tramcamxuc.modules.statistic.dto.response.RevenueStatsResponse;
 import iuh.fit.se.tramcamxuc.modules.statistic.repository.ListenHistoryRepository;
 import iuh.fit.se.tramcamxuc.modules.statistic.service.StatisticService;
+import iuh.fit.se.tramcamxuc.modules.subscription.entity.enums.SubscriptionStatus;
+import iuh.fit.se.tramcamxuc.modules.subscription.repository.UserSubscriptionRepository;
 import iuh.fit.se.tramcamxuc.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +29,8 @@ public class StatisticServiceImpl implements StatisticService {
     private final SongRepository songRepository;
     private final ArtistRepository artistRepository;
     private final ListenHistoryRepository listenHistoryRepository;
+    private final PaymentTransactionRepository paymentRepository;
+    private final UserSubscriptionRepository subscriptionRepository;
 
     @Override
     public DashboardStatsResponse getDashboardStats() {
@@ -78,6 +84,48 @@ public class StatisticServiceImpl implements StatisticService {
         return ChartResponse.builder()
                 .labels(labels)
                 .data(data)
+                .build();
+    }
+
+    @Override
+    public RevenueStatsResponse getRevenueStats() {
+        long totalRevenue = paymentRepository.getTotalRevenue();
+
+        long activeSubscribers = subscriptionRepository.countByStatus(SubscriptionStatus.ACTIVE);
+
+        long cancelled = subscriptionRepository.countByStatus(SubscriptionStatus.CANCELLED);
+        long expired = subscriptionRepository.countByStatus(SubscriptionStatus.EXPIRED);
+        long totalSubs = activeSubscribers + cancelled + expired;
+
+        double churnRate = 0;
+        if (totalSubs > 0) {
+            churnRate = (double) (cancelled + expired) / totalSubs * 100;
+        }
+
+        List<Object[]> revenueData = paymentRepository.getRevenueByPlan();
+        Map<String, Long> revenueByPlanMap = new HashMap<>();
+
+        String topPlanName = "N/A";
+        long maxRevenue = 0;
+
+        for (Object[] row : revenueData) {
+            String planName = (String) row[0];
+            Long amount = ((Number) row[1]).longValue();
+            revenueByPlanMap.put(planName, amount);
+
+            if (amount > maxRevenue) {
+                maxRevenue = amount;
+                topPlanName = planName;
+            }
+        }
+
+        return RevenueStatsResponse.builder()
+                .totalRevenue(totalRevenue)
+                .activeSubscribers(activeSubscribers)
+                .churnRate(Math.round(churnRate * 100.0) / 100.0)
+                .revenueByPlan(revenueByPlanMap)
+                .topPlanName(topPlanName)
+                .topPlanRevenue(maxRevenue)
                 .build();
     }
 }

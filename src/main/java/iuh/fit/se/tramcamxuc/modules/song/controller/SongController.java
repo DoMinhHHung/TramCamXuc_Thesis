@@ -17,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -82,5 +83,10 @@ public class SongController {
     public ResponseEntity<ApiResponse<Void>> recordListen(@PathVariable UUID id) {
         songService.recordListen(id);
         return ResponseEntity.ok(ApiResponse.success("Recorded listen"));
+    }
+
+    @GetMapping("/trending")
+    public ResponseEntity<ApiResponse<List<SongResponse>>> getTrendingSongs() {
+        return ResponseEntity.ok(ApiResponse.success(songService.getTop5Trending()));
     }
 }

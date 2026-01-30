@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -29,4 +30,6 @@ public interface SongRepository extends JpaRepository<Song, UUID> {
 
     @Query("SELECT COALESCE(SUM(s.playCount), 0) FROM Song s")
     Long getTotalPlays();
+
+    List<Song> findTop5ByOrderByPlayCountDesc();
 }
