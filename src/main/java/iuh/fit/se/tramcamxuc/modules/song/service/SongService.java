@@ -13,4 +13,6 @@ public interface SongService {
     Page<SongResponse> getAdminSongs(String keyword, SongStatus status, Pageable pageable);
     void approveSong(UUID songId);
     void rejectSong(UUID songId, String reason);
+    Page<SongResponse> getSongsByStatusForAdmin(SongStatus status, int page, int size);
+    void recordListen(UUID songId);
 }

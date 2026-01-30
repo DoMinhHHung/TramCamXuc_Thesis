@@ -25,4 +25,8 @@ public interface SongRepository extends JpaRepository<Song, UUID> {
     Page<Song> findForAdmin(@Param("keyword") String keyword, @Param("status") SongStatus status, Pageable pageable);
 
     Page<Song> findByArtistIdAndStatusNot(UUID artistId, SongStatus status, Pageable pageable);
+    Page<Song> findByStatusOrderByCreatedAtDesc(SongStatus status, Pageable pageable);
+
+    @Query("SELECT COALESCE(SUM(s.playCount), 0) FROM Song s")
+    Long getTotalPlays();
 }

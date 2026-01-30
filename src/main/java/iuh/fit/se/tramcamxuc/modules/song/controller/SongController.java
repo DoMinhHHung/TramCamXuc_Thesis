@@ -65,4 +65,22 @@ public class SongController {
         songService.rejectSong(id, reason);
         return ResponseEntity.ok(ApiResponse.success("Đã từ chối bài hát!"));
     }
+
+    @GetMapping("/admin/list")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Page<SongResponse>>> getSongsByStatus(
+            @RequestParam(defaultValue = "PENDING_APPROVAL") SongStatus status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                songService.getSongsByStatusForAdmin(status, page, size)
+        ));
+    }
+
+    @PostMapping("/{id}/listen")
+    public ResponseEntity<ApiResponse<Void>> recordListen(@PathVariable UUID id) {
+        songService.recordListen(id);
+        return ResponseEntity.ok(ApiResponse.success("Recorded listen"));
+    }
 }

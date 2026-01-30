@@ -16,6 +16,9 @@ import iuh.fit.se.tramcamxuc.modules.song.entity.Song;
 import iuh.fit.se.tramcamxuc.modules.song.entity.enums.SongStatus;
 import iuh.fit.se.tramcamxuc.modules.song.repository.SongRepository;
 import iuh.fit.se.tramcamxuc.modules.song.service.SongService;
+import iuh.fit.se.tramcamxuc.modules.statistic.entity.ListenHistory;
+import iuh.fit.se.tramcamxuc.modules.statistic.repository.ListenHistoryRepository;
+import iuh.fit.se.tramcamxuc.modules.user.entity.User;
 import iuh.fit.se.tramcamxuc.modules.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,8 +27,11 @@ import org.jaudiotagger.audio.AudioFileIO;
 import org.mp4parser.IsoFile;
 import org.mp4parser.boxes.iso14496.part12.MovieHeaderBox;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,6 +39,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -49,6 +57,7 @@ public class SongServiceImpl implements SongService {
     private final CloudinaryService cloudinaryService;
     private final StringRedisTemplate redisTemplate;
     private final EmailService emailService;
+    private final ListenHistoryRepository listenHistoryRepository;
 
     private static final String TRANSCODE_QUEUE_KEY = "music:transcode:queue";
 
@@ -144,6 +153,39 @@ public class SongServiceImpl implements SongService {
                 "REJECTED",
                 reason
         );
+    }
+
+    @Override
+    public Page<SongResponse> getSongsByStatusForAdmin(SongStatus status, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+
+
+        return songRepository.findForAdmin(null, status, pageable)
+                .map(SongResponse::fromEntity);
+    }
+
+    @Override
+    @Transactional
+    @Async("taskExecutor")
+    public void recordListen(UUID songId) {
+        Song song = songRepository.findById(songId).orElse(null);
+        if (song == null) return;
+
+        song.setPlayCount(song.getPlayCount() + 1);
+        songRepository.save(song);
+
+        User currentUser = null;
+        try {
+            currentUser = userService.getCurrentUser();
+        } catch (Exception e) {}
+
+        ListenHistory history = ListenHistory.builder()
+                .song(song)
+                .user(currentUser)
+                .listenedAt(LocalDateTime.now())
+                .build();
+
+        listenHistoryRepository.save(history);
     }
 
     // --- METHODs HELPER ---
