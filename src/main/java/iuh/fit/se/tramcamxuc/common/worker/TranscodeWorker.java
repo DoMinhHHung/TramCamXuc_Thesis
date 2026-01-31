@@ -1,11 +1,14 @@
 package iuh.fit.se.tramcamxuc.common.worker;
 
+import iuh.fit.se.tramcamxuc.common.constants.RedisKeys;
 import iuh.fit.se.tramcamxuc.common.service.MinioService;
+import iuh.fit.se.tramcamxuc.common.service.WorkerMetricsService;
 import iuh.fit.se.tramcamxuc.modules.song.entity.Song;
 import iuh.fit.se.tramcamxuc.modules.song.entity.enums.SongStatus;
 import iuh.fit.se.tramcamxuc.modules.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -26,26 +29,49 @@ public class TranscodeWorker {
     private final StringRedisTemplate redisTemplate;
     private final SongRepository songRepository;
     private final MinioService minioService;
+    private final WorkerMetricsService workerMetricsService;
 
-    private static final String QUEUE_KEY = "music:transcode:queue";
-    private static final String DLQ_KEY = "music:transcode:dead";
-    private static final String RETRY_KEY_PREFIX = "music:transcode:retry:";
     private static final int MAX_RETRY = 3;
+    private static final String LOCK_VALUE = UUID.randomUUID().toString(); // Unique lock value per worker instance
 
     @Scheduled(fixedDelay = 5000)
+    @SchedulerLock(name = "transcodeWorker", lockAtMostFor = "10m", lockAtLeastFor = "30s")
     public void processTranscode() {
-        String songIdStr = redisTemplate.opsForList().rightPop(QUEUE_KEY);
-        if (songIdStr == null) return;
+        String songIdStr = null;
+        String lockKey = null;
+        
+        try {
+            songIdStr = redisTemplate.opsForList().rightPop(RedisKeys.TRANSCODE_QUEUE, 3, TimeUnit.SECONDS);
+            if (songIdStr == null) return;
 
-        String lockKey = "LOCK:TRANSCODE_WORKER:" + songIdStr;
-        Boolean acquired = redisTemplate.opsForValue().setIfAbsent(lockKey, "LOCKED", Duration.ofMinutes(10));
-        if (Boolean.FALSE.equals(acquired)) return;
+            lockKey = RedisKeys.TRANSCODE_LOCK_PREFIX + songIdStr;
+            String lockIdentifier = LOCK_VALUE + ":" + Thread.currentThread().getId();
+            Boolean acquired = redisTemplate.opsForValue().setIfAbsent(lockKey, lockIdentifier, Duration.ofMinutes(10));
+            if (Boolean.FALSE.equals(acquired)) {
+                log.warn("Bài {} đang được xử lý bởi worker khác", songIdStr);
+                return;
+            }
+
+            log.info(">>> [WORKER] Bắt đầu Transcode bài hát ID: {} với lock: {}", songIdStr, lockIdentifier);
+            
+        } catch (Exception redisException) {
+            log.error(">>> [REDIS ERROR] Không thể kết nối Redis: {}. Skip iteration này.", redisException.getMessage());
+            if (songIdStr != null && lockKey == null) {
+                try {
+                    redisTemplate.opsForList().leftPush(RedisKeys.TRANSCODE_QUEUE, songIdStr);
+                } catch (Exception e) {
+                    log.error("Không thể push lại vào queue: {}", e.getMessage());
+                }
+            }
+            return;
+        }
 
         log.info(">>> [WORKER] Bắt đầu Transcode bài hát ID: {}", songIdStr);
 
         File tempInDir = null;
         File tempOutDir = null;
         UUID songId = UUID.fromString(songIdStr);
+        long startTime = System.currentTimeMillis();
 
         try {
             Song song = songRepository.findById(songId).orElse(null);
@@ -91,35 +117,75 @@ public class TranscodeWorker {
 
             updateSongStatus(songId, hlsUrl, SongStatus.PENDING_APPROVAL);
 
-            redisTemplate.delete(RETRY_KEY_PREFIX + songIdStr);
-            log.info(">>> [SUCCESS] Transcode xong bài: {}", songId);
+            redisTemplate.delete(RedisKeys.TRANSCODE_RETRY_PREFIX + songIdStr);
+            
+            // Track metrics
+            long duration = System.currentTimeMillis() - startTime;
+            workerMetricsService.trackSuccess(duration);
+            
+            log.info(">>> [SUCCESS] Transcode xong bài: {} trong {}ms", songId, duration);
 
         } catch (Exception e) {
             log.error(">>> [ERROR] Lỗi Transcode bài {}: {}", songIdStr, e.getMessage());
+            workerMetricsService.trackFailure();
             handleFailure(songIdStr, e.getMessage());
         } finally {
-            redisTemplate.delete(lockKey);
-            if (tempInDir != null) FileSystemUtils.deleteRecursively(tempInDir);
-            if (tempOutDir != null) FileSystemUtils.deleteRecursively(tempOutDir);
+            // Clean up lock với safety check - chỉ xóa nếu lock vẫn thuộc worker này
+            if (lockKey != null) {
+                try {
+                    String lockIdentifier = LOCK_VALUE + ":" + Thread.currentThread().getId();
+                    String currentLock = redisTemplate.opsForValue().get(lockKey);
+                    if (lockIdentifier.equals(currentLock)) {
+                        redisTemplate.delete(lockKey);
+                        log.debug("Đã xóa lock cho bài: {}", songIdStr);
+                    } else {
+                        log.warn("Lock đã thay đổi hoặc hết hạn cho bài: {}", songIdStr);
+                    }
+                } catch (Exception e) {
+                    log.error("Không thể xóa lock key: {}", e.getMessage());
+                }
+            }
+            
+            cleanupTempDirectory(tempInDir, "input");
+            cleanupTempDirectory(tempOutDir, "output");
+        }
+    }
+    
+    private void cleanupTempDirectory(File dir, String type) {
+        if (dir != null && dir.exists()) {
+            try {
+                FileSystemUtils.deleteRecursively(dir);
+                log.debug("Đã xóa temp {} directory: {}", type, dir.getAbsolutePath());
+            } catch (Exception e) {
+                log.error("Không thể xóa temp {} directory {}: {}", type, dir.getAbsolutePath(), e.getMessage());
+                // TODO: Có thể thêm scheduled job để cleanup các file cũ > 24h
+            }
         }
     }
 
     private void handleFailure(String songIdStr, String errorMessage) {
-        String retryKey = RETRY_KEY_PREFIX + songIdStr;
-        Long currentRetry = redisTemplate.opsForValue().increment(retryKey);
+        try {
+            String retryKey = RedisKeys.TRANSCODE_RETRY_PREFIX + songIdStr;
+            Long currentRetry = redisTemplate.opsForValue().increment(retryKey);
 
-        if (currentRetry != null && currentRetry <= MAX_RETRY) {
-            log.warn("Retry lần {}/{} cho bài {}", currentRetry, MAX_RETRY, songIdStr);
-            redisTemplate.opsForList().leftPush(QUEUE_KEY, songIdStr);
-        } else {
-            log.error("Đã hết lượt Retry. Đẩy bài {} vào Dead Letter Queue.", songIdStr);
-            redisTemplate.opsForList().leftPush(DLQ_KEY, songIdStr);
-            redisTemplate.delete(retryKey);
-            try {
-                updateSongStatus(UUID.fromString(songIdStr), null, SongStatus.TRANSCODE_FAILED);
-            } catch (Exception ex) {
-                log.error("Lỗi update status failed", ex);
+            if (currentRetry != null && currentRetry <= MAX_RETRY) {
+                log.warn("Retry lần {}/{} cho bài {}", currentRetry, MAX_RETRY, songIdStr);
+                redisTemplate.opsForList().leftPush(RedisKeys.TRANSCODE_QUEUE, songIdStr);
+                redisTemplate.expire(retryKey, Duration.ofHours(24));
+            } else {
+                log.error("Đã hết lượt Retry. Đẩy bài {} vào Dead Letter Queue.", songIdStr);
+                redisTemplate.opsForList().leftPush(RedisKeys.TRANSCODE_DLQ, songIdStr);
+                redisTemplate.delete(retryKey);
+                try {
+                    updateSongStatus(UUID.fromString(songIdStr), null, SongStatus.TRANSCODE_FAILED);
+                } catch (Exception ex) {
+                    log.error("Lỗi update status failed cho bài {}: {}", songIdStr, ex.getMessage());
+                }
             }
+        } catch (Exception redisEx) {
+            log.error(">>> [REDIS ERROR] Không thể xử lý failure cho bài {}: {}. Bỏ qua job này.", 
+                    songIdStr, redisEx.getMessage());
+
         }
     }
 

@@ -53,7 +53,7 @@ public class MinioService {
 
             } catch (Exception e) {
                 log.error("Lỗi upload nhạc: {}", e.getMessage());
-                throw new RuntimeException("Upload failed");
+                throw new AppException("Không thể upload file âm nhạc: " + e.getMessage());
             } finally {
                 if (file != null && file.exists()) {
                     file.delete();
@@ -75,7 +75,7 @@ public class MinioService {
             );
             log.info("Đã xóa file MinIO: {}", fileName);
         } catch (Exception e) {
-            log.error("Lỗi xóa file MinIO: {}", e.getMessage());
+            log.error("Lỗi xóa file MinIO từ URL {}: {}", fileUrl, e.getMessage());
         }
     }
 
@@ -99,7 +99,7 @@ public class MinioService {
             return destFile;
         } catch (Exception e) {
             log.error("Lỗi download file từ MinIO: {}", e.getMessage());
-            throw new RuntimeException("Không thể tải file gốc về để xử lý: " + e.getMessage());
+            throw new AppException("Không thể tải file từ storage: " + e.getMessage());
         }
     }
 
@@ -117,7 +117,7 @@ public class MinioService {
             return String.format("%s/%s/%s", publicUrl, bucketName, objectName);
         } catch (Exception e) {
             log.error("Lỗi upload file local lên MinIO: {}", e.getMessage());
-            throw new RuntimeException("Upload file HLS thất bại");
+            throw new AppException("Upload file HLS thất bại: " + e.getMessage());
         }
     }
 

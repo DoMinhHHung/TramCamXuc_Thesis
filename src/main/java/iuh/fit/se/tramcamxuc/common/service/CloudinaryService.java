@@ -3,6 +3,7 @@ package iuh.fit.se.tramcamxuc.common.service;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.Transformation;
 import com.cloudinary.utils.ObjectUtils;
+import iuh.fit.se.tramcamxuc.common.exception.AppException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -65,7 +66,7 @@ public class CloudinaryService {
 
     @Async("taskExecutor")
     public void deleteImage(String imageUrl) {
-        if (imageUrl == null) return;
+        if (imageUrl == null || imageUrl.isEmpty()) return;
         try {
 
             String[] parts = imageUrl.split("/");
@@ -92,7 +93,8 @@ public class CloudinaryService {
             log.info("Đã xóa ảnh rác Cloudinary: {}", publicId);
 
         } catch (Exception e) {
-            log.error("Lỗi xóa ảnh Cloudinary: {}", e.getMessage());
+            log.error("Lỗi xóa ảnh Cloudinary từ URL {}: {}", imageUrl, e.getMessage());
+            // Async method nên không throw, chỉ log
         }
     }
 
@@ -106,8 +108,8 @@ public class CloudinaryService {
 
             return uploadResult.get("secure_url").toString();
         } catch (IOException e) {
-            log.error("Lỗi sync ảnh từ URL: {}", e.getMessage());
-            return null;
+            log.error("Lỗi sync ảnh từ URL {}: {}", imageUrl, e.getMessage());
+            throw new AppException("Không thể upload ảnh từ URL: " + e.getMessage());
         }
     }
 }

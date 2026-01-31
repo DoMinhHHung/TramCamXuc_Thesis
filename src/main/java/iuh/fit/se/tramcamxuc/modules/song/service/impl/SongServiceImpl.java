@@ -26,6 +26,8 @@ import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.mp4parser.IsoFile;
 import org.mp4parser.boxes.iso14496.part12.MovieHeaderBox;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -74,12 +76,20 @@ public class SongServiceImpl implements SongService {
         int duration = getDurationFromMultipartFile(audioFile);
 
         String rawUrl;
+        File tempFile = null;
         try {
-            File tempFile = File.createTempFile("upload", audioFile.getOriginalFilename());
+            tempFile = File.createTempFile("upload", audioFile.getOriginalFilename());
             audioFile.transferTo(tempFile);
             rawUrl = minioService.uploadMusicFileAsync(tempFile, audioFile.getContentType(), audioFile.getOriginalFilename()).join();
         } catch (Exception e) {
             throw new AppException("Error uploading music file to storage: " + e.getMessage());
+        } finally {
+            // Cleanup temp file ngay sau khi upload
+            if (tempFile != null && tempFile.exists()) {
+                if (!tempFile.delete()) {
+                    log.warn("Failed to delete upload temp file: {}", tempFile.getAbsolutePath());
+                }
+            }
         }
 
         String coverUrl = null;
@@ -167,17 +177,18 @@ public class SongServiceImpl implements SongService {
     @Override
     @Transactional
     @Async("taskExecutor")
+    @CacheEvict(value = "top5Trending", allEntries = true) // Invalidate cache khi có listen mới
     public void recordListen(UUID songId) {
-        Song song = songRepository.findById(songId).orElse(null);
-        if (song == null) return;
-
-        song.setPlayCount(song.getPlayCount() + 1);
-        songRepository.save(song);
+        // Atomic increment - tránh race condition
+        songRepository.incrementPlayCount(songId);
 
         User currentUser = null;
         try {
             currentUser = userService.getCurrentUser();
         } catch (Exception e) {}
+
+        Song song = songRepository.findById(songId).orElse(null);
+        if (song == null) return;
 
         ListenHistory history = ListenHistory.builder()
                 .song(song)
@@ -189,6 +200,7 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
+    @Cacheable(value = "top5Trending", unless = "#result == null || #result.isEmpty()")
     public List<SongResponse> getTop5Trending() {
         List<Song> topSongs = songRepository.findTop5ByOrderByPlayCountDesc();
 

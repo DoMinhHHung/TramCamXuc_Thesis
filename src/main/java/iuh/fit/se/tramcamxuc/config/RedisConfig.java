@@ -46,8 +46,8 @@ public class RedisConfig {
 
         LettucePoolingClientConfiguration clientConfig = LettucePoolingClientConfiguration.builder()
                 .poolConfig(poolConfig)
-                .commandTimeout(Duration.ofSeconds(2))
-                .shutdownTimeout(Duration.ofMillis(100))
+                .commandTimeout(Duration.ofSeconds(5)) // Tăng từ 2s lên 5s cho operations phức tạp
+                .shutdownTimeout(Duration.ofSeconds(2)) // Tăng từ 100ms lên 2s
                 .build();
 
         RedisStandaloneConfiguration serverConfig = new RedisStandaloneConfiguration();
@@ -69,14 +69,20 @@ public class RedisConfig {
 
         Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(objectMapper, Object.class);
 
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+        RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofHours(1))
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer))
                 .disableCachingNullValues();
+        
+        // Custom TTL cho từng cache
+        RedisCacheConfiguration top5Config = defaultConfig.entryTtl(Duration.ofMinutes(5)); // Top5 trending cache 5 phút
+        RedisCacheConfiguration genreConfig = defaultConfig.entryTtl(Duration.ofHours(24)); // Genres cache 24h
 
         return RedisCacheManager.builder(connectionFactory)
-                .cacheDefaults(config)
+                .cacheDefaults(defaultConfig)
+                .withCacheConfiguration("top5Trending", top5Config)
+                .withCacheConfiguration("all_genres", genreConfig)
                 .build();
     }
 }
