@@ -8,7 +8,12 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "payment_transactions")
+@Table(name = "payment_transactions", indexes = {
+        @Index(name = "idx_payment_user", columnList = "user_id"),
+        @Index(name = "idx_payment_status", columnList = "status"),
+        @Index(name = "idx_payment_order_code", columnList = "orderCode"),
+        @Index(name = "idx_payment_status_amount", columnList = "status, amount")
+})
 @Getter
 @Setter
 @NoArgsConstructor

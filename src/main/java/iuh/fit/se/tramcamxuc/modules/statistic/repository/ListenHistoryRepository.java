@@ -1,6 +1,7 @@
 package iuh.fit.se.tramcamxuc.modules.statistic.repository;
 
 import iuh.fit.se.tramcamxuc.modules.statistic.entity.ListenHistory;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,4 +21,14 @@ public interface ListenHistoryRepository extends JpaRepository<ListenHistory, UU
             "ORDER BY date ASC",
             nativeQuery = true)
     List<Object[]> getStatsByDate(@Param("startDate") LocalDateTime startDate);
+
+    @Query("SELECT lh.song, COUNT(lh) as playCount " +
+            "FROM ListenHistory lh " +
+            "WHERE lh.listenedAt >= :startDate " +
+            "GROUP BY lh.song " +
+            "ORDER BY COUNT(lh) DESC")
+    List<Object[]> getTopPlayedSongs(@Param("startDate") LocalDateTime startDate, Pageable pageable);
+
+    @Query("SELECT COUNT(DISTINCT lh.user.id) FROM ListenHistory lh WHERE lh.song.id = :songId")
+    Long countUniqueListeners(@Param("songId") UUID songId);
 }

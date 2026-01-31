@@ -9,7 +9,13 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "songs")
+@Table(name = "songs", indexes = {
+        @Index(name = "idx_song_artist", columnList = "artist_id"),
+        @Index(name = "idx_song_genre", columnList = "genre_id"),
+        @Index(name = "idx_song_status", columnList = "status"),
+        @Index(name = "idx_song_play_count", columnList = "playCount"),
+        @Index(name = "idx_song_slug", columnList = "slug")
+})
 @Getter
 @Setter
 @NoArgsConstructor

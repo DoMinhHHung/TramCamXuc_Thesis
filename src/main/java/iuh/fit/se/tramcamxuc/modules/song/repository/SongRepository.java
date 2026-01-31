@@ -15,13 +15,18 @@ import java.util.UUID;
 @Repository
 public interface SongRepository extends JpaRepository<Song, UUID> {
 
-    @Query("SELECT s FROM Song s WHERE s.status = 'PUBLIC' AND " +
+    @Query("SELECT s FROM Song s " +
+            "LEFT JOIN FETCH s.artist " +
+            "LEFT JOIN FETCH s.genre " +
+            "WHERE s.status = 'PUBLIC' AND " +
             "(LOWER(s.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(s.artist.artistName) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<Song> searchPublicSongs(@Param("keyword") String keyword, Pageable pageable);
 
-    @Query("SELECT s FROM Song s WHERE " +
-            "(:status IS NULL OR s.status = :status) AND " +
+    @Query("SELECT s FROM Song s " +
+            "LEFT JOIN FETCH s.artist " +
+            "LEFT JOIN FETCH s.genre " +
+            "WHERE (:status IS NULL OR s.status = :status) AND " +
             "(:keyword IS NULL OR :keyword = '' OR LOWER(s.title) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<Song> findForAdmin(@Param("keyword") String keyword, @Param("status") SongStatus status, Pageable pageable);
 
@@ -31,6 +36,10 @@ public interface SongRepository extends JpaRepository<Song, UUID> {
     @Query("SELECT COALESCE(SUM(s.playCount), 0) FROM Song s")
     Long getTotalPlays();
 
+    @Query("SELECT s FROM Song s " +
+            "LEFT JOIN FETCH s.artist " +
+            "LEFT JOIN FETCH s.genre " +
+            "ORDER BY s.playCount DESC LIMIT 5")
     List<Song> findTop5ByOrderByPlayCountDesc();
 
 
