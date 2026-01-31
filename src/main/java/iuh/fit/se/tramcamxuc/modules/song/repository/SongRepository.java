@@ -57,4 +57,8 @@ public interface SongRepository extends JpaRepository<Song, UUID> {
     void incrementPlayCount(@Param("songId") UUID songId);
 
 
+@Modifying
+    @Query("UPDATE Song s SET s.playCount = s.playCount + :count WHERE s.id = :songId")
+    int incrementPlayCountBy(@Param("songId") UUID songId, @Param("count") int count);
+
 }

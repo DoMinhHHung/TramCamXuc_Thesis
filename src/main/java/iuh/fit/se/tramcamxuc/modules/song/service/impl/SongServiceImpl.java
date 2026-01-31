@@ -41,6 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -175,12 +176,11 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
-    @Transactional
     @Async("taskExecutor")
-    @CacheEvict(value = "top5Trending", allEntries = true) // Invalidate cache khi có listen mới
     public void recordListen(UUID songId) {
-        // Atomic increment - tránh race condition
-        songRepository.incrementPlayCount(songId);
+        String redisKey = "song_view:" + songId;
+        redisTemplate.opsForValue().increment(redisKey, 1);
+        redisTemplate.expire(redisKey, Duration.ofHours(1));
 
         User currentUser = null;
         try {

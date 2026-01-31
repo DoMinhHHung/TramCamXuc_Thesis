@@ -76,7 +76,7 @@ public class RedisConfig {
                 .disableCachingNullValues();
         
         // Custom TTL cho từng cache
-        RedisCacheConfiguration top5Config = defaultConfig.entryTtl(Duration.ofMinutes(5)); // Top5 trending cache 5 phút
+        RedisCacheConfiguration top5Config = defaultConfig.entryTtl(Duration.ofMinutes(10)); // Top5 trending cache 10 phút
         RedisCacheConfiguration genreConfig = defaultConfig.entryTtl(Duration.ofHours(24)); // Genres cache 24h
 
         return RedisCacheManager.builder(connectionFactory)
