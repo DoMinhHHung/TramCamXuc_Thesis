@@ -46,8 +46,8 @@ public class RedisConfig {
 
         LettucePoolingClientConfiguration clientConfig = LettucePoolingClientConfiguration.builder()
                 .poolConfig(poolConfig)
-                .commandTimeout(Duration.ofSeconds(5)) // Tăng từ 2s lên 5s cho operations phức tạp
-                .shutdownTimeout(Duration.ofSeconds(2)) // Tăng từ 100ms lên 2s
+                .commandTimeout(Duration.ofSeconds(5))
+                .shutdownTimeout(Duration.ofSeconds(2))
                 .build();
 
         RedisStandaloneConfiguration serverConfig = new RedisStandaloneConfiguration();
@@ -76,8 +76,8 @@ public class RedisConfig {
                 .disableCachingNullValues();
         
         // Custom TTL cho từng cache
-        RedisCacheConfiguration top5Config = defaultConfig.entryTtl(Duration.ofMinutes(10)); // Top5 trending cache 10 phút
-        RedisCacheConfiguration genreConfig = defaultConfig.entryTtl(Duration.ofHours(24)); // Genres cache 24h
+        RedisCacheConfiguration top5Config = defaultConfig.entryTtl(Duration.ofMinutes(10));
+        RedisCacheConfiguration genreConfig = defaultConfig.entryTtl(Duration.ofHours(24));
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig)
