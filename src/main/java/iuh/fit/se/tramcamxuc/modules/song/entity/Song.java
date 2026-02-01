@@ -2,6 +2,7 @@ package iuh.fit.se.tramcamxuc.modules.song.entity;
 
 import iuh.fit.se.tramcamxuc.BaseEntity;
 import iuh.fit.se.tramcamxuc.common.utils.SlugUtils;
+import iuh.fit.se.tramcamxuc.modules.album.entity.Album;
 import iuh.fit.se.tramcamxuc.modules.artist.entity.Artist;
 import iuh.fit.se.tramcamxuc.modules.genre.entity.Genre;
 import iuh.fit.se.tramcamxuc.modules.song.entity.enums.SongStatus;
@@ -55,6 +56,10 @@ public class Song extends BaseEntity {
 
     @Column(columnDefinition = "bigint default 0")
     private long playCount;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "album_id")
+    private Album album;
 
     @PrePersist
     @PreUpdate

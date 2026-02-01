@@ -3,7 +3,8 @@ package iuh.fit.se.tramcamxuc.modules.song.entity.enums;
 public enum SongStatus {
     PROCESSING,          
     DRAFT,               
-    PENDING_APPROVAL,    
+    PENDING_APPROVAL,
+    SCHEDULED,
     PUBLIC,              
     PRIVATE,             
     REJECTED,            
