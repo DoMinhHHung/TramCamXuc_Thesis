@@ -2,6 +2,7 @@ package iuh.fit.se.tramcamxuc.modules.song.controller;
 
 import iuh.fit.se.tramcamxuc.common.exception.AppException;
 import iuh.fit.se.tramcamxuc.common.exception.dto.ApiResponse;
+import iuh.fit.se.tramcamxuc.modules.song.dto.request.UpdateSongMetadataRequest;
 import iuh.fit.se.tramcamxuc.modules.song.dto.request.UploadSongRequest;
 import iuh.fit.se.tramcamxuc.modules.song.dto.response.SongResponse;
 import iuh.fit.se.tramcamxuc.modules.song.dto.response.SongWithAdResponse;
@@ -41,7 +42,38 @@ public class SongController {
         return ResponseEntity.ok(ApiResponse.success(songService.uploadSong(request, audioFile, coverFile)));
     }
 
-    // --- ADMIN API: Lấy danh sách bài hát (Pending/Approved/Rejected) ---
+    @PutMapping("/{id}/metadata")
+    @PreAuthorize("hasRole('ARTIST')")
+    public ResponseEntity<ApiResponse<SongResponse>> updateMetadata(
+            @PathVariable UUID id,
+            @Valid @RequestPart("data") UpdateSongMetadataRequest request,
+            @RequestPart(value = "cover", required = false) MultipartFile coverFile
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(songService.updateSongMetadata(id, request, coverFile)));
+    }
+
+    @PostMapping("/{id}/request-approval")
+    @PreAuthorize("hasRole('ARTIST')")
+    public ResponseEntity<ApiResponse<String>> requestApproval(@PathVariable UUID id) {
+        songService.requestApproval(id);
+        return ResponseEntity.ok(ApiResponse.success("Đã gửi yêu cầu duyệt bài hát"));
+    }
+
+    @PostMapping("/{id}/toggle-visibility")
+    @PreAuthorize("hasRole('ARTIST')")
+    public ResponseEntity<ApiResponse<String>> toggleVisibility(@PathVariable UUID id) {
+        songService.togglePublicPrivate(id);
+        return ResponseEntity.ok(ApiResponse.success("Đã thay đổi trạng thái bài hát"));
+    }
+
+    @GetMapping("/my-songs")
+    @PreAuthorize("hasRole('ARTIST')")
+    public ResponseEntity<ApiResponse<Page<SongResponse>>> getMySongs(
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(songService.getMySongs(pageable)));
+    }
+
     @GetMapping("/admin")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<SongResponse>>> getAdminSongs(
@@ -52,7 +84,6 @@ public class SongController {
         return ResponseEntity.ok(ApiResponse.success(songService.getAdminSongs(keyword, status, pageable)));
     }
 
-    // --- ADMIN API: Duyệt bài ---
     @PostMapping("/admin/{id}/approve")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> approveSong(@PathVariable UUID id) {
@@ -60,7 +91,6 @@ public class SongController {
         return ResponseEntity.ok(ApiResponse.success("Đã duyệt bài hát! Email thông báo đã được gửi."));
     }
 
-    // --- ADMIN API: Từ chối bài ---
     @PostMapping("/admin/{id}/reject")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> rejectSong(

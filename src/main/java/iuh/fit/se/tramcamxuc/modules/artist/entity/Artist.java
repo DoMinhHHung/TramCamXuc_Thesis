@@ -4,6 +4,7 @@ import iuh.fit.se.tramcamxuc.BaseEntity;
 import iuh.fit.se.tramcamxuc.modules.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "artists")
@@ -30,6 +31,9 @@ public class Artist extends BaseEntity {
     private String facebookUrl;
     private String instagramUrl;
     private String youtubeUrl;
+
+    @Column(name = "accepted_terms_at")
+    private LocalDateTime acceptedTermsAt;
 
     // Tổng số lượt nghe nhạc của artist này ( sort trending)
     @Column(columnDefinition = "bigint default 0")

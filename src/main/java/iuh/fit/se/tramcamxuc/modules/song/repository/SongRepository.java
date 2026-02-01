@@ -27,8 +27,9 @@ public interface SongRepository extends JpaRepository<Song, UUID> {
     @Query("SELECT s FROM Song s " +
             "LEFT JOIN FETCH s.artist " +
             "LEFT JOIN FETCH s.genre " +
-            "WHERE (:status IS NULL OR s.status = :status) AND " +
-            "(:keyword IS NULL OR :keyword = '' OR LOWER(s.title) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+            "WHERE s.status IN ('PENDING_APPROVAL', 'PUBLIC', 'PRIVATE', 'REJECTED') " +
+            "AND (:status IS NULL OR s.status = :status) " +
+            "AND (:keyword IS NULL OR :keyword = '' OR LOWER(s.title) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<Song> findForAdmin(@Param("keyword") String keyword, @Param("status") SongStatus status, Pageable pageable);
 
     @Query("SELECT s FROM Song s " +

@@ -10,6 +10,7 @@ import iuh.fit.se.tramcamxuc.modules.artist.entity.Artist;
 import iuh.fit.se.tramcamxuc.modules.artist.repository.ArtistRepository;
 import iuh.fit.se.tramcamxuc.modules.genre.entity.Genre;
 import iuh.fit.se.tramcamxuc.modules.genre.repository.GenreRepository;
+import iuh.fit.se.tramcamxuc.modules.song.dto.request.UpdateSongMetadataRequest;
 import iuh.fit.se.tramcamxuc.modules.song.dto.request.UploadSongRequest;
 import iuh.fit.se.tramcamxuc.modules.song.dto.response.SongResponse;
 import iuh.fit.se.tramcamxuc.modules.song.dto.response.SongWithAdResponse;
@@ -111,7 +112,8 @@ public class SongServiceImpl implements SongService {
                 .duration(duration)
                 .rawUrl(rawUrl)
                 .coverUrl(coverUrl)
-                .status(SongStatus.DRAFT)
+                .status(SongStatus.PROCESSING)
+                .hasBeenApproved(false)
                 .build();
 
         Song savedSong = songRepository.save(song);
@@ -120,6 +122,119 @@ public class SongServiceImpl implements SongService {
         log.info("Pushed song {} to transcode queue", savedSong.getId());
 
         return SongResponse.fromEntity(savedSong);
+    }
+
+    // --- ARTIST METHODS ---
+
+    @Override
+    @Transactional
+    public SongResponse updateSongMetadata(UUID songId, UpdateSongMetadataRequest request, MultipartFile coverFile) {
+        var currentUser = userService.getCurrentUser();
+        Artist artist = artistRepository.findByUserId(currentUser.getId())
+                .orElseThrow(() -> new AppException("You are not registered as an artist"));
+
+        Song song = songRepository.findById(songId)
+                .orElseThrow(() -> new ResourceNotFoundException("Song not found"));
+
+        // Chỉ artist sở hữu mới được sửa
+        if (!song.getArtist().getId().equals(artist.getId())) {
+            throw new AppException("You are not authorized to edit this song");
+        }
+
+        if (song.getStatus() != SongStatus.DRAFT) {
+            throw new AppException("Only songs in DRAFT status can be edited. Current status: " + song.getStatus());
+        }
+
+        song.setTitle(request.getTitle());
+        song.setSlug(SlugUtils.generateSlug(request.getTitle()));
+        song.setBio(request.getBio());
+
+        Genre genre = genreRepository.findById(request.getGenreId())
+                .orElseThrow(() -> new ResourceNotFoundException("Genre not found"));
+        song.setGenre(genre);
+
+        if (coverFile != null && !coverFile.isEmpty()) {
+            String newCoverUrl = cloudinaryService.uploadImageAsync(coverFile, "tramcamxuc/songs/covers").join();
+            if (song.getCoverUrl() != null) {
+                cloudinaryService.deleteImage(song.getCoverUrl());
+            }
+            song.setCoverUrl(newCoverUrl);
+        }
+
+        Song updatedSong = songRepository.save(song);
+        return SongResponse.fromEntity(updatedSong);
+    }
+
+    @Override
+    @Transactional
+    public void requestApproval(UUID songId) {
+        var currentUser = userService.getCurrentUser();
+        Artist artist = artistRepository.findByUserId(currentUser.getId())
+                .orElseThrow(() -> new AppException("You are not registered as an artist"));
+
+        Song song = songRepository.findById(songId)
+                .orElseThrow(() -> new ResourceNotFoundException("Song not found"));
+
+        if (!song.getArtist().getId().equals(artist.getId())) {
+            throw new AppException("You are not authorized to modify this song");
+        }
+
+        if (song.isHasBeenApproved() && song.getStatus() == SongStatus.PRIVATE) {
+            song.setStatus(SongStatus.PUBLIC);
+            songRepository.save(song);
+            log.info("Song {} changed from PRIVATE to PUBLIC (already approved)", songId);
+            return;
+        }
+
+        if (song.getStatus() != SongStatus.DRAFT) {
+            throw new AppException("Only DRAFT songs can request approval. Current status: " + song.getStatus());
+        }
+
+        song.setStatus(SongStatus.PENDING_APPROVAL);
+        songRepository.save(song);
+        
+        log.info("Song {} requested approval by artist {}", songId, artist.getArtistName());
+    }
+
+    @Override
+    @Transactional
+    public void togglePublicPrivate(UUID songId) {
+        var currentUser = userService.getCurrentUser();
+        Artist artist = artistRepository.findByUserId(currentUser.getId())
+                .orElseThrow(() -> new AppException("You are not registered as an artist"));
+
+        Song song = songRepository.findById(songId)
+                .orElseThrow(() -> new ResourceNotFoundException("Song not found"));
+
+        if (!song.getArtist().getId().equals(artist.getId())) {
+            throw new AppException("You are not authorized to modify this song");
+        }
+
+        if (!song.isHasBeenApproved()) {
+            throw new AppException("Song has not been approved yet. Please request approval first.");
+        }
+
+        if (song.getStatus() == SongStatus.PUBLIC) {
+            song.setStatus(SongStatus.PRIVATE);
+            log.info("Song {} changed to PRIVATE by artist {}", songId, artist.getArtistName());
+        } else if (song.getStatus() == SongStatus.PRIVATE) {
+            song.setStatus(SongStatus.PUBLIC);
+            log.info("Song {} changed to PUBLIC by artist {}", songId, artist.getArtistName());
+        } else {
+            throw new AppException("Only PUBLIC or PRIVATE songs can be toggled. Current status: " + song.getStatus());
+        }
+
+        songRepository.save(song);
+    }
+
+    @Override
+    public Page<SongResponse> getMySongs(Pageable pageable) {
+        var currentUser = userService.getCurrentUser();
+        Artist artist = artistRepository.findByUserId(currentUser.getId())
+                .orElseThrow(() -> new AppException("You are not registered as an artist"));
+
+        return songRepository.findByArtistIdAndStatusNot(artist.getId(), SongStatus.DELETED, pageable)
+                .map(SongResponse::fromEntity);
     }
 
     // --- ADMIN METHODS ---
@@ -136,11 +251,12 @@ public class SongServiceImpl implements SongService {
         Song song = songRepository.findById(songId)
                 .orElseThrow(() -> new ResourceNotFoundException("Song does not exist"));
 
-        if (song.getStatus() == SongStatus.DRAFT) {
-            throw new AppException("Song is still processing (transcoding) and cannot be approved.");
+        if (song.getStatus() != SongStatus.PENDING_APPROVAL) {
+            throw new AppException("Only songs in PENDING_APPROVAL status can be approved. Current status: " + song.getStatus());
         }
 
         song.setStatus(SongStatus.PUBLIC);
+        song.setHasBeenApproved(true);
         songRepository.save(song);
 
         emailService.sendSongStatusEmail(
@@ -157,6 +273,10 @@ public class SongServiceImpl implements SongService {
     public void rejectSong(UUID songId, String reason) {
         Song song = songRepository.findById(songId)
                 .orElseThrow(() -> new ResourceNotFoundException("Song does not exist"));
+
+        if (song.getStatus() != SongStatus.PENDING_APPROVAL) {
+            throw new AppException("Only songs in PENDING_APPROVAL status can be rejected");
+        }
 
         song.setStatus(SongStatus.REJECTED);
         songRepository.save(song);
@@ -261,13 +381,11 @@ public class SongServiceImpl implements SongService {
             throw new AppException("Song is not available");
         }
         
-        // Kiểm tra user có cần xem quảng cáo không
         boolean shouldShowAd = userService.shouldShowAds();
         
         AdResponse adResponse = null;
         if (shouldShowAd) {
             adResponse = advertisementService.getRandomAdvertisement();
-            // Tự động ghi nhận impression khi quảng cáo được gửi về
             if (adResponse != null) {
                 advertisementService.recordImpression(adResponse.getId());
             }

@@ -42,6 +42,9 @@ public class Song extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private SongStatus status;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean hasBeenApproved;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "artist_id", nullable = false)
     private Artist artist;

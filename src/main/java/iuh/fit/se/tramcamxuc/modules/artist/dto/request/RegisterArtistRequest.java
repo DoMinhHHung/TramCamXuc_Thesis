@@ -1,5 +1,6 @@
 package iuh.fit.se.tramcamxuc.modules.artist.dto.request;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -17,4 +18,8 @@ public class RegisterArtistRequest {
     private String facebookUrl;
     private String instagramUrl;
     private String youtubeUrl;
+
+    // Chấp nhận điều khoản (Bắt buộc)
+    @AssertTrue(message = "Bạn phải chấp nhận điều khoản và điều kiện để đăng ký nghệ sĩ")
+    private Boolean acceptTerms;
 }

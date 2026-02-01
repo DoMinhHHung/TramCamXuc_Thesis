@@ -1,5 +1,6 @@
 package iuh.fit.se.tramcamxuc.modules.song.service;
 
+import iuh.fit.se.tramcamxuc.modules.song.dto.request.UpdateSongMetadataRequest;
 import iuh.fit.se.tramcamxuc.modules.song.dto.request.UploadSongRequest;
 import iuh.fit.se.tramcamxuc.modules.song.dto.response.SongResponse;
 import iuh.fit.se.tramcamxuc.modules.song.dto.response.SongWithAdResponse;
@@ -13,10 +14,17 @@ import java.util.UUID;
 
 public interface SongService {
     SongResponse uploadSong(UploadSongRequest request, MultipartFile audioFile, MultipartFile coverFile);
+    SongResponse updateSongMetadata(UUID songId, UpdateSongMetadataRequest request, MultipartFile coverFile);
+    void requestApproval(UUID songId);
+    void togglePublicPrivate(UUID songId);
+    Page<SongResponse> getMySongs(Pageable pageable);
+    
+    // Admin methods
     Page<SongResponse> getAdminSongs(String keyword, SongStatus status, Pageable pageable);
     void approveSong(UUID songId);
     void rejectSong(UUID songId, String reason);
     Page<SongResponse> getSongsByStatusForAdmin(SongStatus status, int page, int size);
+    
     void recordListen(UUID songId);
     List<SongResponse> getTop5Trending();
     SongWithAdResponse getSongWithAdInfo(UUID songId);

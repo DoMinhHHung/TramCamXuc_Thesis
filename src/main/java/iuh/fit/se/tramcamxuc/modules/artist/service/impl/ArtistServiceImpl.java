@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import java.time.LocalDateTime;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -46,6 +47,12 @@ public class ArtistServiceImpl implements ArtistService {
         if (artistRepository.existsByArtistName(request.getArtistName())) {
             throw new AppException("Stage name '" + request.getArtistName() + "' already. Please choose another one. || Tên nghệ sĩ " + request.getArtistName() + "đã tồn tại. Vui lòng chọn tên khác");
         }
+
+        // Validate acceptTerms
+        if (request.getAcceptTerms() == null || !request.getAcceptTerms()) {
+            throw new AppException("You must accept the terms and conditions to register as an artist. || Bạn phải chấp nhận điều khoản và điều kiện để đăng ký nghệ sĩ.");
+        }
+
         Artist artist = Artist.builder()
                 .user(user)
                 .artistName(request.getArtistName())
@@ -54,6 +61,7 @@ public class ArtistServiceImpl implements ArtistService {
                 .instagramUrl(request.getInstagramUrl())
                 .youtubeUrl(request.getYoutubeUrl())
                 .avatarUrl(user.getAvatarUrl())
+                .acceptedTermsAt(LocalDateTime.now())
                 .totalPlays(0)
                 .build();
 

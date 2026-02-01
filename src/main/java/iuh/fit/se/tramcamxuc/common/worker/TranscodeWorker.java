@@ -193,7 +193,14 @@ public class TranscodeWorker {
     public void updateSongStatus(UUID songId, String hlsUrl, SongStatus status) {
         Song song = songRepository.findById(songId).orElseThrow();
         if (hlsUrl != null) song.setAudioUrl(hlsUrl);
-        song.setStatus(status);
+        
+        if (status == SongStatus.PENDING_APPROVAL && song.getStatus() == SongStatus.PROCESSING) {
+            song.setStatus(SongStatus.DRAFT);
+            log.info("Song {} transcoded successfully, changed to DRAFT status", songId);
+        } else {
+            song.setStatus(status);
+        }
+        
         songRepository.save(song);
     }
 }
