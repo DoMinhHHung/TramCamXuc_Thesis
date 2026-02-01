@@ -4,6 +4,7 @@ import iuh.fit.se.tramcamxuc.common.exception.AppException;
 import iuh.fit.se.tramcamxuc.common.exception.dto.ApiResponse;
 import iuh.fit.se.tramcamxuc.modules.song.dto.request.UploadSongRequest;
 import iuh.fit.se.tramcamxuc.modules.song.dto.response.SongResponse;
+import iuh.fit.se.tramcamxuc.modules.song.dto.response.SongWithAdResponse;
 import iuh.fit.se.tramcamxuc.modules.song.entity.enums.SongStatus;
 import iuh.fit.se.tramcamxuc.modules.song.service.SongService;
 import jakarta.validation.Valid;
@@ -96,5 +97,10 @@ public class SongController {
     @GetMapping("/trending")
     public ResponseEntity<ApiResponse<List<SongResponse>>> getTrendingSongs() {
         return ResponseEntity.ok(ApiResponse.success(songService.getTop5Trending()));
+    }
+
+    @GetMapping("/{id}/play")
+    public ResponseEntity<ApiResponse<SongWithAdResponse>> getSongForPlay(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.success(songService.getSongWithAdInfo(id)));
     }
 }

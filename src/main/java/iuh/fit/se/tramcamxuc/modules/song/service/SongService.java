@@ -2,6 +2,7 @@ package iuh.fit.se.tramcamxuc.modules.song.service;
 
 import iuh.fit.se.tramcamxuc.modules.song.dto.request.UploadSongRequest;
 import iuh.fit.se.tramcamxuc.modules.song.dto.response.SongResponse;
+import iuh.fit.se.tramcamxuc.modules.song.dto.response.SongWithAdResponse;
 import iuh.fit.se.tramcamxuc.modules.song.entity.enums.SongStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,4 +19,5 @@ public interface SongService {
     Page<SongResponse> getSongsByStatusForAdmin(SongStatus status, int page, int size);
     void recordListen(UUID songId);
     List<SongResponse> getTop5Trending();
+    SongWithAdResponse getSongWithAdInfo(UUID songId);
 }

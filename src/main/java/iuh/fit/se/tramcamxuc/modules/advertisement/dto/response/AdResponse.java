@@ -15,17 +15,29 @@ public class AdResponse {
     private String sponsorName;
     private String clickUrl;
     private String audioUrl;
+    private int duration;
     private boolean active;
+    private long impressions;
+    private long clicks;
+    private double clickThroughRate; // CTR = (clicks / impressions) * 100
     private LocalDateTime createdAt;
 
     public static AdResponse fromEntity(Advertisement ad) {
+        double ctr = ad.getImpressions() > 0 
+            ? (double) ad.getClicks() / ad.getImpressions() * 100 
+            : 0.0;
+        
         return AdResponse.builder()
                 .id(ad.getId())
                 .title(ad.getTitle())
                 .sponsorName(ad.getSponsorName())
                 .clickUrl(ad.getClickUrl())
                 .audioUrl(ad.getAudioUrl())
+                .duration(ad.getDuration())
                 .active(ad.isActive())
+                .impressions(ad.getImpressions())
+                .clicks(ad.getClicks())
+                .clickThroughRate(Math.round(ctr * 100.0) / 100.0)
                 .createdAt(ad.getCreatedAt())
                 .build();
     }

@@ -19,6 +19,7 @@ public class UserProfileResponse {
     private String avatarUrl;
     private LocalDate dob;
     private String gender;
+    private String role;
     private Set<String> favoriteGenres;
 
     public static UserProfileResponse fromEntity(User user) {
@@ -30,6 +31,7 @@ public class UserProfileResponse {
                 .avatarUrl(user.getAvatarUrl())
                 .dob(user.getDob())
                 .gender(user.getGender() != null ? user.getGender().name() : null)
+                .role(user.getRole() != null ? user.getRole().name() : null)
                 .build();
     }
 }

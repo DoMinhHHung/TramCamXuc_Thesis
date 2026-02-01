@@ -19,6 +19,7 @@ public interface UserService {
     void requestChangePasswordOtp();
     void changePasswordWithOtp(ChangePasswordRequest request);
     void onboardUser(OnboardingRequest request);
+    boolean shouldShowAds();
 //    TODO: Admin
     Page<UserProfileResponse> getAllUsers(String keyword, Role role, Pageable pageable);
     String toggleUserStatus(UUID userId);

@@ -16,6 +16,9 @@ import iuh.fit.se.tramcamxuc.modules.user.entity.enums.Role;
 import iuh.fit.se.tramcamxuc.modules.user.entity.enums.UserStatus;
 import iuh.fit.se.tramcamxuc.modules.user.repository.UserRepository;
 import iuh.fit.se.tramcamxuc.modules.user.service.UserService;
+import iuh.fit.se.tramcamxuc.modules.subscription.entity.UserSubscription;
+import iuh.fit.se.tramcamxuc.modules.subscription.entity.enums.SubscriptionStatus;
+import iuh.fit.se.tramcamxuc.modules.subscription.repository.UserSubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
@@ -48,6 +51,7 @@ public class UserServiceImpl implements UserService {
     private final StringRedisTemplate redisTemplate;
     private final EmailService emailService;
     private final GenreRepository genreRepository;
+    private final UserSubscriptionRepository userSubscriptionRepository;
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
@@ -159,6 +163,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public String toggleUserStatus(UUID userId) {
+        User currentUser = getCurrentUser();
+        
+        if (currentUser.getId().equals(userId)) {
+            throw new IllegalArgumentException("You cannot change your own status");
+        }
+        
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         if (user.getIsActive() == UserStatus.ACTIVE) {
@@ -169,6 +179,34 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(user);
         return (user.getIsActive() == UserStatus.ACTIVE) ? "Activated" : "Banned";
+    }
+
+    @Override
+    public boolean shouldShowAds() {
+        try {
+            User user = getCurrentUser();
+            
+            // Kiểm tra subscription hiện tại
+            java.util.Optional<UserSubscription> activeSubscription = userSubscriptionRepository
+                    .findByUserIdAndStatus(user.getId(), SubscriptionStatus.ACTIVE);
+            
+            if (activeSubscription.isEmpty()) {
+                return true; // Free user → hiển thị quảng cáo
+            }
+            
+            // Kiểm tra feature removeAds
+            UserSubscription subscription = activeSubscription.get();
+            if (subscription.getPlan().getFeatures() == null) {
+                return true;
+            }
+            
+            // Nếu plan có removeAds = true → KHÔNG hiển thị quảng cáo
+            return !subscription.getPlan().getFeatures().isRemoveAds();
+            
+        } catch (Exception e) {
+            // User chưa đăng nhập hoặc lỗi → hiển thị quảng cáo
+            return true;
+        }
     }
 
     @Override

@@ -12,6 +12,7 @@ import iuh.fit.se.tramcamxuc.modules.genre.entity.Genre;
 import iuh.fit.se.tramcamxuc.modules.genre.repository.GenreRepository;
 import iuh.fit.se.tramcamxuc.modules.song.dto.request.UploadSongRequest;
 import iuh.fit.se.tramcamxuc.modules.song.dto.response.SongResponse;
+import iuh.fit.se.tramcamxuc.modules.song.dto.response.SongWithAdResponse;
 import iuh.fit.se.tramcamxuc.modules.song.entity.Song;
 import iuh.fit.se.tramcamxuc.modules.song.entity.enums.SongStatus;
 import iuh.fit.se.tramcamxuc.modules.song.repository.SongRepository;
@@ -20,6 +21,8 @@ import iuh.fit.se.tramcamxuc.modules.statistic.entity.ListenHistory;
 import iuh.fit.se.tramcamxuc.modules.statistic.repository.ListenHistoryRepository;
 import iuh.fit.se.tramcamxuc.modules.user.entity.User;
 import iuh.fit.se.tramcamxuc.modules.user.service.UserService;
+import iuh.fit.se.tramcamxuc.modules.advertisement.service.AdvertisementService;
+import iuh.fit.se.tramcamxuc.modules.advertisement.dto.response.AdResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jaudiotagger.audio.AudioFile;
@@ -61,6 +64,7 @@ public class SongServiceImpl implements SongService {
     private final EmailService emailService;
     private final StringRedisTemplate redisTemplate;
     private final ListenHistoryRepository listenHistoryRepository;
+    private final AdvertisementService advertisementService;
 
     private static final String TRANSCODE_QUEUE_KEY = "music:transcode:queue";
 
@@ -246,5 +250,33 @@ public class SongServiceImpl implements SongService {
                 }
             }
         }
+    }
+
+    @Override
+    public SongWithAdResponse getSongWithAdInfo(UUID songId) {
+        Song song = songRepository.findById(songId)
+                .orElseThrow(() -> new ResourceNotFoundException("Song not found"));
+        
+        if (song.getStatus() != SongStatus.PUBLIC) {
+            throw new AppException("Song is not available");
+        }
+        
+        // Kiểm tra user có cần xem quảng cáo không
+        boolean shouldShowAd = userService.shouldShowAds();
+        
+        AdResponse adResponse = null;
+        if (shouldShowAd) {
+            adResponse = advertisementService.getRandomAdvertisement();
+            // Tự động ghi nhận impression khi quảng cáo được gửi về
+            if (adResponse != null) {
+                advertisementService.recordImpression(adResponse.getId());
+            }
+        }
+        
+        return SongWithAdResponse.builder()
+                .song(SongResponse.fromEntity(song))
+                .shouldShowAd(shouldShowAd)
+                .advertisement(adResponse)
+                .build();
     }
 }
