@@ -22,95 +22,95 @@ import java.util.UUID;
 public class AdvertisementController {
 
     private final AdvertisementService adService;
-
-    // --- ADMIN ENDPOINTS ---
-    
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse> uploadAd(@ModelAttribute @Valid UploadAdRequest request) {
-        return ResponseEntity.ok(ApiResponse.builder()
-                .status(200)
-                .message("Upload quảng cáo thành công")
-                .data(adService.uploadAdvertisement(request))
-                .build());
-    }
-
-    @GetMapping("/admin")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse> getAllAds(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Boolean active,
-            @PageableDefault(sort = "created_at", direction = Sort.Direction.DESC) Pageable pageable
-    ) {
-        return ResponseEntity.ok(ApiResponse.builder()
-                .status(200)
-                .message("Lấy danh sách quảng cáo thành công")
-                .data(adService.getAllAds(keyword, active, pageable))
-                .build());
-    }
-
-    @GetMapping("/admin/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse> getAdById(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.builder()
-                .status(200)
-                .message("Lấy thông tin quảng cáo thành công")
-                .data(adService.getAdById(id))
-                .build());
-    }
-
-    @PutMapping("/admin/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse> updateAd(
-            @PathVariable UUID id,
-            @RequestBody @Valid UpdateAdRequest request
-    ) {
-        return ResponseEntity.ok(ApiResponse.builder()
-                .status(200)
-                .message("Cập nhật quảng cáo thành công")
-                .data(adService.updateAd(id, request))
-                .build());
-    }
-
-    @DeleteMapping("/admin/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse> deleteAd(@PathVariable UUID id) {
-        adService.deleteAd(id);
-        return ResponseEntity.ok(ApiResponse.builder()
-                .status(200)
-                .message("Xóa quảng cáo thành công")
-                .build());
-    }
-
-    @PutMapping("/admin/{id}/toggle")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse> toggleAdStatus(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.builder()
-                .status(200)
-                .message("Cập nhật trạng thái quảng cáo thành công")
-                .data(adService.toggleAdStatus(id))
-                .build());
-    }
-
-    @GetMapping("/admin/statistics")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse> getStatistics() {
-        return ResponseEntity.ok(ApiResponse.builder()
-                .status(200)
-                .message("Lấy thống kê quảng cáo thành công")
-                .data(adService.getStatistics())
-                .build());
-    }
-
-    @GetMapping("/admin/growth")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse> getGrowthTrend() {
-        return ResponseEntity.ok(ApiResponse.builder()
-                .status(200)
-                .message("Lấy biểu đồ tăng trưởng thành công")
-                .data(adService.getGrowthTrend())
-                .build());
-    }
+//
+//    // --- ADMIN ENDPOINTS ---
+//
+//    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<ApiResponse> uploadAd(@ModelAttribute @Valid UploadAdRequest request) {
+//        return ResponseEntity.ok(ApiResponse.builder()
+//                .status(200)
+//                .message("Upload quảng cáo thành công")
+//                .data(adService.uploadAdvertisement(request))
+//                .build());
+//    }
+//
+//    @GetMapping("/admin")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<ApiResponse> getAllAds(
+//            @RequestParam(required = false) String keyword,
+//            @RequestParam(required = false) Boolean active,
+//            @PageableDefault(sort = "created_at", direction = Sort.Direction.DESC) Pageable pageable
+//    ) {
+//        return ResponseEntity.ok(ApiResponse.builder()
+//                .status(200)
+//                .message("Lấy danh sách quảng cáo thành công")
+//                .data(adService.getAllAds(keyword, active, pageable))
+//                .build());
+//    }
+//
+//    @GetMapping("/admin/{id}")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<ApiResponse> getAdById(@PathVariable UUID id) {
+//        return ResponseEntity.ok(ApiResponse.builder()
+//                .status(200)
+//                .message("Lấy thông tin quảng cáo thành công")
+//                .data(adService.getAdById(id))
+//                .build());
+//    }
+//
+//    @PutMapping("/admin/{id}")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<ApiResponse> updateAd(
+//            @PathVariable UUID id,
+//            @RequestBody @Valid UpdateAdRequest request
+//    ) {
+//        return ResponseEntity.ok(ApiResponse.builder()
+//                .status(200)
+//                .message("Cập nhật quảng cáo thành công")
+//                .data(adService.updateAd(id, request))
+//                .build());
+//    }
+//
+//    @DeleteMapping("/admin/{id}")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<ApiResponse> deleteAd(@PathVariable UUID id) {
+//        adService.deleteAd(id);
+//        return ResponseEntity.ok(ApiResponse.builder()
+//                .status(200)
+//                .message("Xóa quảng cáo thành công")
+//                .build());
+//    }
+//
+//    @PutMapping("/admin/{id}/toggle")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<ApiResponse> toggleAdStatus(@PathVariable UUID id) {
+//        return ResponseEntity.ok(ApiResponse.builder()
+//                .status(200)
+//                .message("Cập nhật trạng thái quảng cáo thành công")
+//                .data(adService.toggleAdStatus(id))
+//                .build());
+//    }
+//
+//    @GetMapping("/admin/statistics")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<ApiResponse> getStatistics() {
+//        return ResponseEntity.ok(ApiResponse.builder()
+//                .status(200)
+//                .message("Lấy thống kê quảng cáo thành công")
+//                .data(adService.getStatistics())
+//                .build());
+//    }
+//
+//    @GetMapping("/admin/growth")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<ApiResponse> getGrowthTrend() {
+//        return ResponseEntity.ok(ApiResponse.builder()
+//                .status(200)
+//                .message("Lấy biểu đồ tăng trưởng thành công")
+//                .data(adService.getGrowthTrend())
+//                .build());
+//    }
 
     // --- PUBLIC ENDPOINTS ---
     

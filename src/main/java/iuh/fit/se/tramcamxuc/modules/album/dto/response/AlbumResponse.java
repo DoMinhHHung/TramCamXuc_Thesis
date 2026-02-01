@@ -2,6 +2,7 @@ package iuh.fit.se.tramcamxuc.modules.album.dto.response;
 
 import iuh.fit.se.tramcamxuc.modules.album.entity.Album;
 import iuh.fit.se.tramcamxuc.modules.song.dto.response.SongResponse;
+import iuh.fit.se.tramcamxuc.modules.song.entity.Song;
 import lombok.Builder;
 import lombok.Data;
 
@@ -24,9 +25,17 @@ public class AlbumResponse {
     private String artistAvatar;
 
     private int totalSongs;
+    private int totalDuration;
+    private String slug;
     private List<SongResponse> songs;
 
     public static AlbumResponse fromEntity(Album album) {
+        int totalDuration = 0;
+        if (album.getSongs() != null) {
+            totalDuration = album.getSongs().stream()
+                    .mapToInt(Song::getDuration)
+                    .sum();
+        }
         return AlbumResponse.builder()
                 .id(album.getId())
                 .title(album.getTitle())
@@ -42,6 +51,8 @@ public class AlbumResponse {
                                 .map(SongResponse::fromEntity)
                                 .collect(Collectors.toList())
                         : List.of())
+                .totalDuration(totalDuration)
+                .slug(album.getSlug())
                 .build();
     }
 }

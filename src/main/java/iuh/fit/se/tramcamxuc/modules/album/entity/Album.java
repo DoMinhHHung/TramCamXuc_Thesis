@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "albums")
+@Table(name = "albums", indexes = {
+        @Index(name = "idx_album_slug", columnList = "slug")
+})
 @Getter
 @Setter
 @Builder
@@ -40,6 +42,9 @@ public class Album extends BaseEntity {
 
     @OneToMany(mappedBy = "album", fetch = FetchType.LAZY)
     private List<Song> songs = new ArrayList<>();
+
+    @Column(unique = true, nullable = false)
+    private String slug;
 
     @Transient
     public int getSongCount() {

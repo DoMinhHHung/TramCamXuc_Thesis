@@ -87,4 +87,78 @@ public class EmailService {
             log.error("Failed to send email to {}: {}", to, e.getMessage());
         }
     }
+
+    @Async("taskExecutor")
+    public void sendAlbumApprovedEmail(String to, String artistName, String albumTitle, String albumCover, 
+                                       int songCount, String releaseDate, String status, String albumSlug) {
+        try {
+            String subject = "🎉 Album của bạn đã được duyệt!";
+            String templateName = "email/album-approved";
+
+            Context context = new Context();
+            context.setVariable("artistName", artistName);
+            context.setVariable("albumTitle", albumTitle);
+            context.setVariable("albumCover", albumCover != null ? albumCover : "");
+            context.setVariable("songCount", songCount);
+            context.setVariable("releaseDate", releaseDate);
+            context.setVariable("status", status);
+            
+            String albumLink = baseUrl + "/album/" + albumSlug;
+            String dashboardLink = baseUrl + "/artist/dashboard";
+            context.setVariable("albumLink", albumLink);
+            context.setVariable("dashboardLink", dashboardLink);
+
+            String htmlContent = templateEngine.process(templateName, context);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            log.info("Sent album approved email to {} for album: {}", to, albumTitle);
+
+        } catch (Exception e) {
+            log.error("Failed to send album approved email to {}: {}", to, e.getMessage());
+        }
+    }
+
+    @Async("taskExecutor")
+    public void sendAlbumRejectedEmail(String to, String artistName, String albumTitle, String albumCover,
+                                       int songCount, String submittedDate, String reason, String albumId) {
+        try {
+            String subject = "⚠️ Thông báo về Album của bạn";
+            String templateName = "email/album-rejected";
+
+            Context context = new Context();
+            context.setVariable("artistName", artistName);
+            context.setVariable("albumTitle", albumTitle);
+            context.setVariable("albumCover", albumCover != null ? albumCover : "");
+            context.setVariable("songCount", songCount);
+            context.setVariable("submittedDate", submittedDate);
+            context.setVariable("reason", reason);
+
+            String editAlbumLink = baseUrl + "/artist/albums/" + albumId + "/edit";
+            String supportLink = baseUrl + "/support";
+            context.setVariable("editAlbumLink", editAlbumLink);
+            context.setVariable("supportLink", supportLink);
+
+            String htmlContent = templateEngine.process(templateName, context);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            log.info("Sent album rejected email to {} for album: {}", to, albumTitle);
+
+        } catch (Exception e) {
+            log.error("Failed to send album rejected email to {}: {}", to, e.getMessage());
+        }
+    }
 }

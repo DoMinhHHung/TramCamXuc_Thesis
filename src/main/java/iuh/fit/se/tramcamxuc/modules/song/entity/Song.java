@@ -9,6 +9,8 @@ import iuh.fit.se.tramcamxuc.modules.song.entity.enums.SongStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "songs", indexes = {
         @Index(name = "idx_song_artist", columnList = "artist_id"),
@@ -60,6 +62,9 @@ public class Song extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "album_id")
     private Album album;
+
+    @Column(name = "release_date")
+    private LocalDateTime releaseDate;
 
     @PrePersist
     @PreUpdate

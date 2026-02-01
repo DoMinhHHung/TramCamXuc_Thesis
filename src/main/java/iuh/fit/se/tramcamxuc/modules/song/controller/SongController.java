@@ -84,39 +84,38 @@ public class SongController {
         return ResponseEntity.ok(ApiResponse.success(songService.getAdminSongs(keyword, status, pageable)));
     }
 
-    @PostMapping("/admin/{id}/approve")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<String>> approveSong(@PathVariable UUID id) {
-        songService.approveSong(id);
-        return ResponseEntity.ok(ApiResponse.success("Đã duyệt bài hát! Email thông báo đã được gửi."));
-    }
-
-    @PostMapping("/admin/{id}/reject")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<String>> rejectSong(
-            @PathVariable UUID id,
-            @RequestBody Map<String, String> body) {
-
-        String reason = body.get("reason");
-        if (reason == null || reason.trim().isEmpty()) {
-            throw new AppException("Lý do từ chối không được để trống");
-        }
-
-        songService.rejectSong(id, reason);
-        return ResponseEntity.ok(ApiResponse.success("Đã từ chối bài hát!"));
-    }
-
-    @GetMapping("/admin/list")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Page<SongResponse>>> getSongsByStatus(
-            @RequestParam(defaultValue = "PENDING_APPROVAL") SongStatus status,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        return ResponseEntity.ok(ApiResponse.success(
-                songService.getSongsByStatusForAdmin(status, page, size)
-        ));
-    }
+//    @PostMapping("/admin/{id}/approve")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<ApiResponse<String>> approveSong(@PathVariable UUID id) {
+//        songService.approveSong(id);
+//        return ResponseEntity.ok(ApiResponse.success("Đã duyệt bài hát! Email thông báo đã được gửi."));
+//    }
+//
+//    @PostMapping("/admin/{id}/reject")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<ApiResponse<String>> rejectSong(
+//            @PathVariable UUID id,
+//            @RequestBody Map<String, String> body) {
+//
+//        String reason = body.get("reason");
+//        if (reason == null || reason.trim().isEmpty()) {
+//            throw new AppException("Lý do từ chối không được để trống");
+//        }
+//
+//        songService.rejectSong(id, reason);
+//        return ResponseEntity.ok(ApiResponse.success("Đã từ chối bài hát!"));
+//    }
+//    @GetMapping("/admin/list")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<ApiResponse<Page<SongResponse>>> getSongsByStatus(
+//            @RequestParam(defaultValue = "PENDING_APPROVAL") SongStatus status,
+//            @RequestParam(defaultValue = "1") int page,
+//            @RequestParam(defaultValue = "10") int size
+//    ) {
+//        return ResponseEntity.ok(ApiResponse.success(
+//                songService.getSongsByStatusForAdmin(status, page, size)
+//        ));
+//    }
 
     @PostMapping("/{id}/listen")
     public ResponseEntity<ApiResponse<Void>> recordListen(@PathVariable UUID id) {

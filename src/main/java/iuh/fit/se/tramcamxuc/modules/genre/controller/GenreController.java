@@ -22,27 +22,4 @@ public class GenreController {
     public ResponseEntity<ApiResponse> getAllGenres() {
         return ResponseEntity.ok(ApiResponse.success(genreService.getAllGenres()));
     }
-
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<GenreResponse>> createGenre(
-            @Valid @RequestBody GenreRequest request
-    ) {
-        return ResponseEntity.ok(ApiResponse.success(genreService.createGenre(request)));
-    }
-
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<GenreResponse>> updateGenre(
-            @PathVariable UUID id,
-            @Valid @RequestBody GenreRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(genreService.updateGenre(id, request)));
-    }
-
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<String>> deleteGenre(@PathVariable UUID id) {
-        genreService.deleteGenre(id);
-        return ResponseEntity.ok(ApiResponse.success("Xóa thể loại thành công"));
-    }
 }

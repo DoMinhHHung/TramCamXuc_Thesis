@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Album đã được duyệt</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0a0e27;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #1a1f3a 0%, #0d1127 100%);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(139, 92, 246, 0.3);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header::before {
+            content: '🎉';
+            font-size: 60px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .content {
+            padding: 40px 30px;
+            color: #e5e7eb;
+            line-height: 1.8;
+        }
+
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #f3f4f6;
+        }
+
+        .album-card {
+            background: rgba(139, 92, 246, 0.1);
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
+        }
+
+        .album-cover {
+            width: 100%;
+            max-width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin: 0 auto 20px;
+            display: block;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .album-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #a78bfa;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .album-info {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: #f3f4f6;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+        }
+
+        .message {
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 4px solid #6366f1;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 6px;
+            color: #e5e7eb;
+        }
+
+        .cta-section {
+            text-align: center;
+            margin: 35px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+            padding: 16px 40px;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 10px;
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(139, 92, 246, 0.5);
+        }
+
+        .footer {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .footer a {
+            color: #a78bfa;
+            text-decoration: none;
+        }
+
+        .social-links {
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #a78bfa;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), transparent);
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Album Của Bạn Đã Được Duyệt!</h1>
+        <p style="margin: 10px 0 0; font-size: 16px; opacity: 0.95;">Chúc mừng! Album của bạn đã sẵn sàng với khán giả</p>
+    </div>
+
+    <div class="content">
+        <p class="greeting">Xin chào <strong th:text="${artistName}">Artist</strong>,</p>
+
+        <p>Chúng tôi rất vui mừng thông báo rằng album <strong th:text="${albumTitle}">Album Name</strong> của bạn đã được phê duyệt và hiện đã có mặt trên nền tảng TramCamXuc! 🎊</p>
+
+        <div class="album-card">
+            <img th:if="${albumCover}" th:src="${albumCover}" alt="Album Cover" class="album-cover">
+            <div class="album-title" th:text="${albumTitle}">Album Title</div>
+
+            <div class="album-info">
+                <div class="info-row">
+                    <span class="info-label">📀 Số bài hát:</span>
+                    <span class="info-value" th:text="${songCount} + ' tracks'">10 tracks</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📅 Ngày phát hành:</span>
+                    <span class="info-value" th:text="${releaseDate}">2024-01-15</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📊 Trạng thái:</span>
+                    <span class="status-badge" th:text="${status}">PUBLIC</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="message">
+            <p style="margin: 0;">
+                <strong>🎵 Tất cả bài hát trong album đã sẵn sàng để khán giả thưởng thức!</strong>
+            </p>
+            <p style="margin: 10px 0 0;">
+                Album của bạn đang được hiển thị trên nền tảng và người nghe có thể tìm thấy, phát và chia sẻ các bài hát của bạn ngay bây giờ.
+            </p>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3 style="color: #a78bfa; margin-bottom: 15px;">📈 Tiếp theo bạn có thể:</h3>
+        <ul style="color: #e5e7eb; line-height: 2;">
+            <li>Chia sẻ album trên mạng xã hội để tiếp cận nhiều người nghe hơn</li>
+            <li>Theo dõi thống kê lượt nghe và tương tác từ khán giả</li>
+            <li>Tạo thêm nội dung để tương tác với fan của bạn</li>
+            <li>Chuẩn bị cho các album tiếp theo</li>
+        </ul>
+
+        <div class="cta-section">
+            <a th:href="${albumLink}" class="btn">🎧 Xem Album Trên App</a>
+            <a th:href="${dashboardLink}" class="btn btn-secondary">📊 Xem Dashboard</a>
+        </div>
+
+        <p style="margin-top: 30px; color: #9ca3af; font-size: 14px;">
+            Nếu bạn có bất kỳ câu hỏi nào hoặc cần hỗ trợ, đừng ngần ngại liên hệ với chúng tôi.
+        </p>
+    </div>
+
+    <div class="footer">
+        <p><strong>TramCamXuc - Nền tảng Âm nhạc</strong></p>
+        <p>Kết nối nghệ sĩ và người yêu nhạc</p>
+        <div class="social-links">
+            <a href="#">Facebook</a> |
+            <a href="#">Instagram</a> |
+            <a href="#">Twitter</a>
+        </div>
+        <p style="margin-top: 15px; font-size: 12px; opacity: 0.7;">
+            © 2024 TramCamXuc. All rights reserved.<br>
+            Email này được gửi tự động, vui lòng không trả lời.
+        </p>
+    </div>
+</div>
+</body>
+</html>

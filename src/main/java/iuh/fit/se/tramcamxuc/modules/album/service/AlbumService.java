@@ -43,4 +43,8 @@ public interface AlbumService {
 
     // 9. Xem danh sách Album của 1 ca sĩ bất kỳ
     Page<AlbumResponse> getAlbumsByArtist(UUID artistId, Pageable pageable);
+    AlbumResponse getAlbumDetailBySlug(String slug);
+
+    void approveAlbum(UUID albumId);
+    void rejectAlbum(UUID albumId, String reason);
 }

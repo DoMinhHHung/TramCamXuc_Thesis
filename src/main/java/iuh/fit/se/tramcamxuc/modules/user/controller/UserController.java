@@ -68,22 +68,38 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("Cập nhật sở thích thành công!"));
     }
 
-    @GetMapping("/admin")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Page<UserAdminResponse>>> getUsersForAdmin(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        return ResponseEntity.ok(ApiResponse.success(
-                userService.getUsersForAdmin(keyword, page, size)
-        ));
-    }
-
-    @PatchMapping("/admin/{id}/toggle-status")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<String>> toggleUserStatus(@PathVariable UUID id) {
-        String status = userService.toggleUserStatus(id);
-        return ResponseEntity.ok(ApiResponse.success("User has been " + status));
-    }
+//    @GetMapping("/admin")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<ApiResponse<Page<UserAdminResponse>>> getUsersForAdmin(
+//            @RequestParam(required = false) String keyword,
+//            @RequestParam(defaultValue = "1") int page,
+//            @RequestParam(defaultValue = "10") int size
+//    ) {
+//        return ResponseEntity.ok(ApiResponse.success(
+//                userService.getUsersForAdmin(keyword, page, size)
+//        ));
+//    }
+//    @PatchMapping("/admin/{id}/toggle-status")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<ApiResponse<String>> toggleUserStatus(@PathVariable UUID id) {
+//        String status = userService.toggleUserStatus(id);
+//        return ResponseEntity.ok(ApiResponse.success("User has been " + status));
+//    }
+//    @GetMapping("/admin")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<ApiResponse<Page<UserAdminResponse>>> getUsersForAdmin(
+//            @RequestParam(required = false) String keyword,
+//            @RequestParam(defaultValue = "1") int page,
+//            @RequestParam(defaultValue = "10") int size
+//    ) {
+//        return ResponseEntity.ok(ApiResponse.success(
+//                userService.getUsersForAdmin(keyword, page, size)
+//        ));
+//    }
+//    @PatchMapping("/admin/{id}/toggle-status")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<ApiResponse<String>> toggleUserStatus(@PathVariable UUID id) {
+//        String status = userService.toggleUserStatus(id);
+//        return ResponseEntity.ok(ApiResponse.success("User has been " + status));
+//    }
 }
