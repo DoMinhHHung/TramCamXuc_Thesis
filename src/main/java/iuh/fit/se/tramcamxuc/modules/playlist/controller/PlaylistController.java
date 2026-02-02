@@ -3,6 +3,7 @@ package iuh.fit.se.tramcamxuc.modules.playlist.controller;
 import iuh.fit.se.tramcamxuc.common.exception.dto.ApiResponse;
 import iuh.fit.se.tramcamxuc.modules.playlist.dto.request.AddSongRequest;
 import iuh.fit.se.tramcamxuc.modules.playlist.dto.request.CreatePlaylistRequest;
+import iuh.fit.se.tramcamxuc.modules.playlist.dto.request.ReorderPlaylistRequest;
 import iuh.fit.se.tramcamxuc.modules.playlist.dto.request.UpdatePlaylistRequest;
 import iuh.fit.se.tramcamxuc.modules.playlist.dto.response.PlaylistResponse;
 import iuh.fit.se.tramcamxuc.modules.playlist.service.PlaylistService;
@@ -73,6 +74,16 @@ public class PlaylistController {
             @PageableDefault(sort = "updatedAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         return ResponseEntity.ok(ApiResponse.success(playlistService.getMyPlaylists(pageable)));
+    }
+
+    @PutMapping("/{id}/songs/reorder")
+    public ResponseEntity<ApiResponse<String>> reorderSongs(
+            @PathVariable UUID id,
+            @Valid @RequestBody ReorderPlaylistRequest request
+    ) {
+        playlistService.reorderPlaylist(id, request);
+
+        return ResponseEntity.ok(ApiResponse.success("Đã cập nhật thứ tự playlist"));
     }
 
     // --- PUBLIC ENDPOINTS ---

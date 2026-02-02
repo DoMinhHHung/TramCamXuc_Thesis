@@ -2,6 +2,7 @@ package iuh.fit.se.tramcamxuc.modules.playlist.service;
 
 import iuh.fit.se.tramcamxuc.modules.playlist.dto.request.AddSongRequest;
 import iuh.fit.se.tramcamxuc.modules.playlist.dto.request.CreatePlaylistRequest;
+import iuh.fit.se.tramcamxuc.modules.playlist.dto.request.ReorderPlaylistRequest;
 import iuh.fit.se.tramcamxuc.modules.playlist.dto.request.UpdatePlaylistRequest;
 import iuh.fit.se.tramcamxuc.modules.playlist.dto.response.PlaylistResponse;
 import org.springframework.data.domain.Page;
@@ -41,4 +42,7 @@ public interface PlaylistService {
 
     // 9. Khám phá (Lấy các playlist public)
     Page<PlaylistResponse> getPublicPlaylists(Pageable pageable);
+
+    // 10. Sắp xếp lại thứ tự bài hát trong Playlist
+    void reorderPlaylist(UUID playlistId, ReorderPlaylistRequest request);
 }

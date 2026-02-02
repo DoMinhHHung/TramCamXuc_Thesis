@@ -5,8 +5,7 @@ import iuh.fit.se.tramcamxuc.modules.artist.entity.Artist;
 import iuh.fit.se.tramcamxuc.modules.song.entity.Song;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -23,6 +22,8 @@ import java.util.List;
 @AllArgsConstructor
 @DynamicInsert
 @DynamicUpdate
+@SQLDelete(sql = "UPDATE albums SET is_deleted = true WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 public class Album extends BaseEntity {
 
     @Column(nullable = false, length = 150)
@@ -41,6 +42,7 @@ public class Album extends BaseEntity {
     private Artist artist;
 
     @OneToMany(mappedBy = "album", fetch = FetchType.LAZY)
+    @BatchSize(size = 10)
     private List<Song> songs = new ArrayList<>();
 
     @Column(unique = true, nullable = false)

@@ -6,6 +6,7 @@ import iuh.fit.se.tramcamxuc.common.service.CloudinaryService;
 import iuh.fit.se.tramcamxuc.common.utils.SlugUtils;
 import iuh.fit.se.tramcamxuc.modules.playlist.dto.request.AddSongRequest;
 import iuh.fit.se.tramcamxuc.modules.playlist.dto.request.CreatePlaylistRequest;
+import iuh.fit.se.tramcamxuc.modules.playlist.dto.request.ReorderPlaylistRequest;
 import iuh.fit.se.tramcamxuc.modules.playlist.dto.request.UpdatePlaylistRequest;
 import iuh.fit.se.tramcamxuc.modules.playlist.dto.response.PlaylistResponse;
 import iuh.fit.se.tramcamxuc.modules.playlist.entity.Playlist;
@@ -26,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -191,5 +193,27 @@ public class PlaylistServiceImpl implements PlaylistService {
     public Page<PlaylistResponse> getPublicPlaylists(Pageable pageable) {
         return playlistRepository.findByIsPublicTrue(pageable)
                 .map(PlaylistResponse::fromEntity);
+    }
+
+    @Override
+    @Transactional
+    public void reorderPlaylist(UUID playlistId, ReorderPlaylistRequest request) {
+        Playlist playlist = getOwnedPlaylist(playlistId);
+
+        List<PlaylistSong> currentSongs = playlist.getPlaylistSongs();
+
+        List<UUID> newOrderIds = request.getSongIds();
+
+        for (int i = 0; i < newOrderIds.size(); i++) {
+            UUID songIdTarget = newOrderIds.get(i);
+            int newOrder = i + 1;
+
+            currentSongs.stream()
+                    .filter(ps -> ps.getSong().getId().equals(songIdTarget))
+                    .findFirst()
+                    .ifPresent(ps -> ps.setOrder(newOrder));
+        }
+
+        playlistSongRepository.saveAll(currentSongs);
     }
 }

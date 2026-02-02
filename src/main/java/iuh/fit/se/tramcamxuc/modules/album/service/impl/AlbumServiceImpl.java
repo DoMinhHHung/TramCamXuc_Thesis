@@ -167,7 +167,7 @@ public class AlbumServiceImpl implements AlbumService {
         Album album = getOwnedAlbum(albumId);
 
         List<Song> songs = album.getSongs();
-        if (songs != null) {
+        if (songs != null && !songs.isEmpty()) {
             songs.forEach(s -> s.setAlbum(null));
             songRepository.saveAll(songs);
         }
@@ -278,7 +278,6 @@ public class AlbumServiceImpl implements AlbumService {
 
         songRepository.saveAll(pendingSongs);
 
-        // Gửi email thông báo album đã được duyệt
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
             String releaseDate = album.getReleaseDate() != null 
@@ -322,8 +321,7 @@ public class AlbumServiceImpl implements AlbumService {
 
         songRepository.saveAll(pendingSongs);
 
-        // Gửi email thông báo album bị từ chối
-        try {
+            try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
             String submittedDate = album.getCreatedAt() != null 
                 ? album.getCreatedAt().format(formatter) 
