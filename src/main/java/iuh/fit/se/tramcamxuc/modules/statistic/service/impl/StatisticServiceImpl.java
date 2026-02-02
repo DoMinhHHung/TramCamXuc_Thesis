@@ -2,49 +2,53 @@ package iuh.fit.se.tramcamxuc.modules.statistic.service.impl;
 
 import iuh.fit.se.tramcamxuc.modules.artist.repository.ArtistRepository;
 import iuh.fit.se.tramcamxuc.modules.payment.repository.PaymentTransactionRepository;
+import iuh.fit.se.tramcamxuc.modules.song.dto.response.SongResponse;
+import iuh.fit.se.tramcamxuc.modules.song.entity.Song;
 import iuh.fit.se.tramcamxuc.modules.song.repository.SongRepository;
+import iuh.fit.se.tramcamxuc.modules.statistic.document.ListenHistoryDoc;
 import iuh.fit.se.tramcamxuc.modules.statistic.dto.response.ChartResponse;
 import iuh.fit.se.tramcamxuc.modules.statistic.dto.response.DashboardStatsResponse;
 import iuh.fit.se.tramcamxuc.modules.statistic.dto.response.RevenueStatsResponse;
-import iuh.fit.se.tramcamxuc.modules.statistic.repository.ListenHistoryRepository;
+import iuh.fit.se.tramcamxuc.modules.statistic.repository.ListenHistoryMongoRepository;
 import iuh.fit.se.tramcamxuc.modules.statistic.service.StatisticService;
 import iuh.fit.se.tramcamxuc.modules.subscription.entity.enums.SubscriptionStatus;
 import iuh.fit.se.tramcamxuc.modules.subscription.repository.UserSubscriptionRepository;
+import iuh.fit.se.tramcamxuc.modules.user.entity.User;
 import iuh.fit.se.tramcamxuc.modules.user.repository.UserRepository;
+import iuh.fit.se.tramcamxuc.modules.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class StatisticServiceImpl implements StatisticService {
     private final UserRepository userRepository;
     private final SongRepository songRepository;
     private final ArtistRepository artistRepository;
-    private final ListenHistoryRepository listenHistoryRepository;
+    private final ListenHistoryMongoRepository historyRepository;
     private final PaymentTransactionRepository paymentRepository;
     private final UserSubscriptionRepository subscriptionRepository;
+    private final UserService userService;
 
     @Override
     public DashboardStatsResponse getDashboardStats() {
-        // 1. Đếm User (trừ Admin ra nếu muốn, nhưng thôi đếm hết cho oai)
         long totalUsers = userRepository.count();
 
-        // 2. Đếm bài hát
         long totalSongs = songRepository.count();
 
-        // 3. Đếm Artist
         long totalArtists = artistRepository.count();
 
-        // 4. Tổng lượt nghe
-        long totalPlays = songRepository.getTotalPlays();
+        long totalPlays = historyRepository.count();
 
         return DashboardStatsResponse.builder()
                 .totalUsers(totalUsers)
@@ -56,31 +60,23 @@ public class StatisticServiceImpl implements StatisticService {
 
     @Override
     public ChartResponse getListeningTrend() {
-        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(6);
-        List<Object[]> rawData = listenHistoryRepository.getStatsByDate(sevenDaysAgo);
-
-        Map<String, Long> statsMap = new HashMap<>();
-        for (Object[] row : rawData) {
-            String dateStr = row[0].toString();
-            Long count = ((Number) row[1]).longValue();
-            statsMap.put(dateStr, count);
-        }
-
         List<String> labels = new ArrayList<>();
         List<Long> data = new ArrayList<>();
-
+        
         LocalDate current = LocalDate.now().minusDays(6);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
+        
         for (int i = 0; i < 7; i++) {
-            String dateKey = current.toString();
-
+            LocalDateTime startOfDay = current.atStartOfDay();
+            LocalDateTime endOfDay = current.plusDays(1).atStartOfDay();
+            
+            long count = historyRepository.countByListenedAtBetween(startOfDay, endOfDay);
+            
             labels.add(current.format(DateTimeFormatter.ofPattern("dd/MM")));
-            data.add(statsMap.getOrDefault(dateKey, 0L));
-
+            data.add(count);
+            
             current = current.plusDays(1);
         }
-
+        
         return ChartResponse.builder()
                 .labels(labels)
                 .data(data)
@@ -108,14 +104,18 @@ public class StatisticServiceImpl implements StatisticService {
         String topPlanName = "N/A";
         long maxRevenue = 0;
 
-        for (Object[] row : revenueData) {
-            String planName = (String) row[0];
-            Long amount = ((Number) row[1]).longValue();
-            revenueByPlanMap.put(planName, amount);
+        if (revenueData != null && !revenueData.isEmpty()) {
+            for (Object[] row : revenueData) {
+                if (row != null && row.length >= 2 && row[0] != null && row[1] != null) {
+                    String planName = (String) row[0];
+                    Long amount = ((Number) row[1]).longValue();
+                    revenueByPlanMap.put(planName, amount);
 
-            if (amount > maxRevenue) {
-                maxRevenue = amount;
-                topPlanName = planName;
+                    if (amount > maxRevenue) {
+                        maxRevenue = amount;
+                        topPlanName = planName;
+                    }
+                }
             }
         }
 
@@ -127,5 +127,48 @@ public class StatisticServiceImpl implements StatisticService {
                 .topPlanName(topPlanName)
                 .topPlanRevenue(maxRevenue)
                 .build();
+    }
+
+    @Override
+    @Async("taskExecutor")
+    public void recordListenHistory(UUID userId, UUID songId) {
+        Song song = songRepository.findById(songId).orElse(null);
+        if (song == null) {
+            log.warn("Song not found for listen history: {}", songId);
+            return;
+        }
+
+        ListenHistoryDoc doc = ListenHistoryDoc.builder()
+                .userId(userId)
+                .songId(songId)
+                .songTitle(song.getTitle())
+                .artistNames(song.getArtist().getArtistName())
+                .coverUrl(song.getCoverUrl())
+                .genreId(song.getGenre().getId())
+                .listenedAt(LocalDateTime.now())
+                .build();
+
+        historyRepository.save(doc);
+        log.debug("Recorded listen history for user {} - song {}", userId, songId);
+    }
+
+    @Override
+    public Page<SongResponse> getListenHistory(Pageable pageable) {
+        User user = userService.getCurrentUser();
+
+        return historyRepository.findByUserIdOrderByListenedAtDesc(user.getId(), pageable)
+                .map(doc -> {
+                    Song song = songRepository.findById(doc.getSongId()).orElse(null);
+                    if (song != null) {
+                        return SongResponse.fromEntity(song);
+                    }
+                    
+                    return SongResponse.builder()
+                            .id(doc.getSongId().toString())
+                            .title(doc.getSongTitle())
+                            .artistName(doc.getArtistNames())
+                            .coverUrl(doc.getCoverUrl())
+                            .build();
+                });
     }
 }

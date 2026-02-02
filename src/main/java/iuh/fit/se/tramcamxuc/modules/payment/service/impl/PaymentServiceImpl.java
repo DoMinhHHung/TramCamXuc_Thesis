@@ -96,7 +96,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void processWebhook(WebhookData webhookData) {
         Long orderCode = webhookData.getOrderCode();
         log.info("Webhook received orderCode: {}", orderCode);

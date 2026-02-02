@@ -18,8 +18,7 @@ import iuh.fit.se.tramcamxuc.modules.song.entity.Song;
 import iuh.fit.se.tramcamxuc.modules.song.entity.enums.SongStatus;
 import iuh.fit.se.tramcamxuc.modules.song.repository.SongRepository;
 import iuh.fit.se.tramcamxuc.modules.song.service.SongService;
-import iuh.fit.se.tramcamxuc.modules.statistic.entity.ListenHistory;
-import iuh.fit.se.tramcamxuc.modules.statistic.repository.ListenHistoryRepository;
+import iuh.fit.se.tramcamxuc.modules.statistic.service.StatisticService;
 import iuh.fit.se.tramcamxuc.modules.user.entity.User;
 import iuh.fit.se.tramcamxuc.modules.user.service.UserService;
 import iuh.fit.se.tramcamxuc.modules.advertisement.service.AdvertisementService;
@@ -30,7 +29,6 @@ import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.mp4parser.IsoFile;
 import org.mp4parser.boxes.iso14496.part12.MovieHeaderBox;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -64,7 +62,7 @@ public class SongServiceImpl implements SongService {
     private final CloudinaryService cloudinaryService;
     private final EmailService emailService;
     private final StringRedisTemplate redisTemplate;
-    private final ListenHistoryRepository listenHistoryRepository;
+    private final StatisticService statisticService;
     private final AdvertisementService advertisementService;
 
     private static final String TRANSCODE_QUEUE_KEY = "music:transcode:queue";
@@ -306,21 +304,17 @@ public class SongServiceImpl implements SongService {
         redisTemplate.opsForValue().increment(redisKey, 1);
         redisTemplate.expire(redisKey, Duration.ofHours(1));
 
+        // Get current user (có thể null nếu guest)
         User currentUser = null;
         try {
             currentUser = userService.getCurrentUser();
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            log.debug("Guest user listening to song: {}", songId);
+        }
 
-        Song song = songRepository.findById(songId).orElse(null);
-        if (song == null) return;
-
-        ListenHistory history = ListenHistory.builder()
-                .song(song)
-                .user(currentUser)
-                .listenedAt(LocalDateTime.now())
-                .build();
-
-        listenHistoryRepository.save(history);
+        if (currentUser != null) {
+            statisticService.recordListenHistory(currentUser.getId(), songId);
+        }
     }
 
     @Override

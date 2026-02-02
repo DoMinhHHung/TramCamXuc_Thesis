@@ -4,6 +4,8 @@ import iuh.fit.se.tramcamxuc.BaseEntity;
 import iuh.fit.se.tramcamxuc.modules.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -13,6 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@BatchSize(size = 20)
 public class Artist extends BaseEntity {
 
     @OneToOne(fetch = FetchType.LAZY)

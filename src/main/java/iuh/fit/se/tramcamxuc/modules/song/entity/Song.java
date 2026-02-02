@@ -8,6 +8,8 @@ import iuh.fit.se.tramcamxuc.modules.genre.entity.Genre;
 import iuh.fit.se.tramcamxuc.modules.song.entity.enums.SongStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
@@ -24,6 +26,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@SQLDelete(sql = "UPDATE songs SET is_deleted = true WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 public class Song extends BaseEntity {
 
     @Column(nullable = false)

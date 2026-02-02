@@ -203,6 +203,7 @@ public class PlaylistServiceImpl implements PlaylistService {
         List<PlaylistSong> currentSongs = playlist.getPlaylistSongs();
 
         List<UUID> newOrderIds = request.getSongIds();
+        if (newOrderIds.size() != currentSongs.size()) throw new AppException("Invalid song list for reordering");
 
         for (int i = 0; i < newOrderIds.size(); i++) {
             UUID songIdTarget = newOrderIds.get(i);
