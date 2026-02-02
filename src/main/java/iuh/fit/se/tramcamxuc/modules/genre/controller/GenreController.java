@@ -15,6 +15,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/genres")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class GenreController {
     private final GenreService genreService;
 

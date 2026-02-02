@@ -1,9 +1,11 @@
 package iuh.fit.se.tramcamxuc.modules.song.service.impl;
 
+import iuh.fit.se.tramcamxuc.common.event.SongApprovedEvent;
+import iuh.fit.se.tramcamxuc.common.event.SongListenedEvent;
+import iuh.fit.se.tramcamxuc.common.event.SongRejectedEvent;
 import iuh.fit.se.tramcamxuc.common.exception.AppException;
 import iuh.fit.se.tramcamxuc.common.exception.ResourceNotFoundException;
 import iuh.fit.se.tramcamxuc.common.service.CloudinaryService;
-import iuh.fit.se.tramcamxuc.common.service.EmailService;
 import iuh.fit.se.tramcamxuc.common.service.MinioService;
 import iuh.fit.se.tramcamxuc.common.utils.SlugUtils;
 import iuh.fit.se.tramcamxuc.modules.artist.entity.Artist;
@@ -18,7 +20,6 @@ import iuh.fit.se.tramcamxuc.modules.song.entity.Song;
 import iuh.fit.se.tramcamxuc.modules.song.entity.enums.SongStatus;
 import iuh.fit.se.tramcamxuc.modules.song.repository.SongRepository;
 import iuh.fit.se.tramcamxuc.modules.song.service.SongService;
-import iuh.fit.se.tramcamxuc.modules.statistic.service.StatisticService;
 import iuh.fit.se.tramcamxuc.modules.user.entity.User;
 import iuh.fit.se.tramcamxuc.modules.user.service.UserService;
 import iuh.fit.se.tramcamxuc.modules.advertisement.service.AdvertisementService;
@@ -30,6 +31,7 @@ import org.jaudiotagger.audio.AudioFileIO;
 import org.mp4parser.IsoFile;
 import org.mp4parser.boxes.iso14496.part12.MovieHeaderBox;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -60,10 +62,9 @@ public class SongServiceImpl implements SongService {
     private final UserService userService;
     private final MinioService minioService;
     private final CloudinaryService cloudinaryService;
-    private final EmailService emailService;
     private final StringRedisTemplate redisTemplate;
-    private final StatisticService statisticService;
     private final AdvertisementService advertisementService;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final String TRANSCODE_QUEUE_KEY = "music:transcode:queue";
 
@@ -257,13 +258,14 @@ public class SongServiceImpl implements SongService {
         song.setHasBeenApproved(true);
         songRepository.save(song);
 
-        emailService.sendSongStatusEmail(
-                song.getArtist().getUser().getEmail(),
-                song.getArtist().getArtistName(),
-                song.getTitle(),
-                "APPROVED",
-                song.getSlug()
-        );
+        // Publish event instead of direct service call
+        eventPublisher.publishEvent(new SongApprovedEvent(
+            song.getId(),
+            song.getArtist().getUser().getEmail(),
+            song.getArtist().getArtistName(),
+            song.getTitle(),
+            song.getSlug()
+        ));
     }
 
     @Override
@@ -279,13 +281,14 @@ public class SongServiceImpl implements SongService {
         song.setStatus(SongStatus.REJECTED);
         songRepository.save(song);
 
-        emailService.sendSongStatusEmail(
-                song.getArtist().getUser().getEmail(),
-                song.getArtist().getArtistName(),
-                song.getTitle(),
-                "REJECTED",
-                reason
-        );
+        // Publish event instead of direct service call
+        eventPublisher.publishEvent(new SongRejectedEvent(
+            song.getId(),
+            song.getArtist().getUser().getEmail(),
+            song.getArtist().getArtistName(),
+            song.getTitle(),
+            reason
+        ));
     }
 
     @Override
@@ -312,9 +315,11 @@ public class SongServiceImpl implements SongService {
             log.debug("Guest user listening to song: {}", songId);
         }
 
-        if (currentUser != null) {
-            statisticService.recordListenHistory(currentUser.getId(), songId);
-        }
+        // Publish event instead of direct service call
+        eventPublisher.publishEvent(new SongListenedEvent(
+            songId,
+            currentUser != null ? currentUser.getId() : null
+        ));
     }
 
     @Override

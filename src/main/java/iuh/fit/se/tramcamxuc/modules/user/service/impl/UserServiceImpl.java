@@ -1,9 +1,9 @@
 package iuh.fit.se.tramcamxuc.modules.user.service.impl;
 
+import iuh.fit.se.tramcamxuc.common.event.PasswordChangeRequestedEvent;
 import iuh.fit.se.tramcamxuc.common.exception.AppException;
 import iuh.fit.se.tramcamxuc.common.exception.ResourceNotFoundException;
 import iuh.fit.se.tramcamxuc.common.service.CloudinaryService;
-import iuh.fit.se.tramcamxuc.common.service.EmailService;
 import iuh.fit.se.tramcamxuc.modules.genre.entity.Genre;
 import iuh.fit.se.tramcamxuc.modules.genre.repository.GenreRepository;
 import iuh.fit.se.tramcamxuc.modules.user.dto.request.ChangePasswordRequest;
@@ -21,6 +21,7 @@ import iuh.fit.se.tramcamxuc.modules.subscription.entity.enums.SubscriptionStatu
 import iuh.fit.se.tramcamxuc.modules.subscription.repository.UserSubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -49,9 +50,9 @@ public class UserServiceImpl implements UserService {
     private final CloudinaryService cloudinaryService;
     private final PasswordEncoder passwordEncoder;
     private final StringRedisTemplate redisTemplate;
-    private final EmailService emailService;
     private final GenreRepository genreRepository;
     private final UserSubscriptionRepository userSubscriptionRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
@@ -108,12 +109,12 @@ public class UserServiceImpl implements UserService {
         String key = "CHANGE_PASS_OTP:" + user.getEmail();
         redisTemplate.opsForValue().set(key, otp, Duration.ofMinutes(5));
 
-        emailService.sendHtmlEmail(
-                user.getEmail(),
-                "OTP Đổi mật khẩu Phazel Sound",
-                "email/change-password-otp",
-                Map.of("name", user.getFullName(), "otp", otp)
-        );
+        // Publish event instead of direct service call
+        eventPublisher.publishEvent(new PasswordChangeRequestedEvent(
+            user.getEmail(),
+            user.getFullName(),
+            otp
+        ));
     }
 
     @Override

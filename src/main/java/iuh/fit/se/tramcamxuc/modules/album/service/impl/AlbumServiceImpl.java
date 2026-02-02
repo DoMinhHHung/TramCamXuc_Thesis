@@ -1,9 +1,10 @@
 package iuh.fit.se.tramcamxuc.modules.album.service.impl;
 
+import iuh.fit.se.tramcamxuc.common.event.AlbumApprovedEvent;
+import iuh.fit.se.tramcamxuc.common.event.AlbumRejectedEvent;
 import iuh.fit.se.tramcamxuc.common.exception.AppException;
 import iuh.fit.se.tramcamxuc.common.exception.ResourceNotFoundException;
 import iuh.fit.se.tramcamxuc.common.service.CloudinaryService;
-import iuh.fit.se.tramcamxuc.common.service.EmailService;
 import iuh.fit.se.tramcamxuc.common.utils.SlugUtils;
 import iuh.fit.se.tramcamxuc.modules.album.dto.request.AddSongToAlbumRequest;
 import iuh.fit.se.tramcamxuc.modules.album.dto.request.CreateAlbumRequest;
@@ -21,6 +22,7 @@ import iuh.fit.se.tramcamxuc.modules.user.entity.User;
 import iuh.fit.se.tramcamxuc.modules.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -41,7 +43,7 @@ public class AlbumServiceImpl implements AlbumService {
     private final SongRepository songRepository;
     private final UserService userService;
     private final CloudinaryService cloudinaryService;
-    private final EmailService emailService;
+    private final ApplicationEventPublisher eventPublisher;
 
     private Artist getCurrentArtist() {
         User user = userService.getCurrentUser();
@@ -278,25 +280,23 @@ public class AlbumServiceImpl implements AlbumService {
 
         songRepository.saveAll(pendingSongs);
 
-        try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-            String releaseDate = album.getReleaseDate() != null 
-                ? album.getReleaseDate().format(formatter) 
-                : "Ngay bây giờ";
-            
-            emailService.sendAlbumApprovedEmail(
-                album.getArtist().getUser().getEmail(),
-                album.getArtist().getArtistName(),
-                album.getTitle(),
-                album.getCoverUrl(),
-                pendingSongs.size(),
-                releaseDate,
-                targetStatus.name(),
-                album.getSlug()
-            );
-        } catch (Exception e) {
-            log.error("Failed to send album approved email for album {}: {}", album.getTitle(), e.getMessage());
-        }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        String releaseDate = album.getReleaseDate() != null 
+            ? album.getReleaseDate().format(formatter) 
+            : "Ngay bây giờ";
+        
+        // Publish event instead of direct service call
+        eventPublisher.publishEvent(new AlbumApprovedEvent(
+            album.getId(),
+            album.getArtist().getUser().getEmail(),
+            album.getArtist().getArtistName(),
+            album.getTitle(),
+            album.getCoverUrl(),
+            pendingSongs.size(),
+            releaseDate,
+            targetStatus.name(),
+            album.getSlug()
+        ));
 
         log.info("Admin approved album {} ({} songs changed to {})", album.getTitle(), pendingSongs.size(), targetStatus);
     }
@@ -321,25 +321,23 @@ public class AlbumServiceImpl implements AlbumService {
 
         songRepository.saveAll(pendingSongs);
 
-            try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-            String submittedDate = album.getCreatedAt() != null 
-                ? album.getCreatedAt().format(formatter) 
-                : LocalDateTime.now().format(formatter);
-            
-            emailService.sendAlbumRejectedEmail(
-                album.getArtist().getUser().getEmail(),
-                album.getArtist().getArtistName(),
-                album.getTitle(),
-                album.getCoverUrl(),
-                pendingSongs.size(),
-                submittedDate,
-                reason,
-                album.getId().toString()
-            );
-        } catch (Exception e) {
-            log.error("Failed to send album rejected email for album {}: {}", album.getTitle(), e.getMessage());
-        }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        String submittedDate = album.getCreatedAt() != null 
+            ? album.getCreatedAt().format(formatter) 
+            : LocalDateTime.now().format(formatter);
+        
+        // Publish event instead of direct service call
+        eventPublisher.publishEvent(new AlbumRejectedEvent(
+            album.getId(),
+            album.getArtist().getUser().getEmail(),
+            album.getArtist().getArtistName(),
+            album.getTitle(),
+            album.getCoverUrl(),
+            pendingSongs.size(),
+            submittedDate,
+            reason,
+            album.getId().toString()
+        ));
 
         log.info("Admin rejected album {}. Reason: {}", album.getTitle(), reason);
     }

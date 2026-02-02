@@ -1,8 +1,9 @@
 package iuh.fit.se.tramcamxuc.modules.auth.service.impl;
 
+import iuh.fit.se.tramcamxuc.common.event.PasswordResetRequestedEvent;
+import iuh.fit.se.tramcamxuc.common.event.UserRegisteredEvent;
 import iuh.fit.se.tramcamxuc.common.exception.AppException;
 import iuh.fit.se.tramcamxuc.common.exception.ResourceNotFoundException;
-import iuh.fit.se.tramcamxuc.common.service.EmailService;
 import iuh.fit.se.tramcamxuc.common.service.JwtService;
 import iuh.fit.se.tramcamxuc.modules.auth.dto.request.*;
 import iuh.fit.se.tramcamxuc.modules.auth.dto.response.AuthResponse;
@@ -16,6 +17,7 @@ import iuh.fit.se.tramcamxuc.modules.user.entity.enums.UserStatus;
 import iuh.fit.se.tramcamxuc.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpMethod;
@@ -42,13 +44,13 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
     private final StringRedisTemplate redisTemplate;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final CustomUserDetailsServiceImpl customUserDetailsService;
     private final RestTemplate restTemplate;
+    private final ApplicationEventPublisher eventPublisher;
     private static final SecureRandom secureRandom = new SecureRandom();
 
     @Value("${application.security.otp.expiration-minutes}")
@@ -329,12 +331,12 @@ public class AuthServiceImpl implements AuthService {
                 Duration.ofMinutes(otpExpirationMinutes)
         );
 
-        emailService.sendHtmlEmail(
-                user.getEmail(),
-                "Xác thực tài khoản Trạm Cảm Xúc",
-                "email/register-otp",
-                Map.of("name", user.getFullName(), "otp", otp)
-        );
+        // Publish event instead of direct service call
+        eventPublisher.publishEvent(new UserRegisteredEvent(
+            user.getEmail(),
+            user.getFullName(),
+            otp
+        ));
     }
 
     private void sendForgotPasswordOtp(User user) {
@@ -346,12 +348,12 @@ public class AuthServiceImpl implements AuthService {
                 Duration.ofMinutes(5)
         );
 
-        emailService.sendHtmlEmail(
-                user.getEmail(),
-                "Đặt lại mật khẩu Trạm Cảm Xúc",
-                "email/forgot-password",
-                Map.of("name", user.getFullName(), "otp", otp)
-        );
+        // Publish event instead of direct service call
+        eventPublisher.publishEvent(new PasswordResetRequestedEvent(
+            user.getEmail(),
+            user.getFullName(),
+            otp
+        ));
     }
 
     private void saveUserRefreshToken(User user, String jwtToken) {
